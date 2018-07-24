@@ -1,12 +1,16 @@
 <?php
 namespace FlarumConnection\Models;
 use FlarumConnection\Exceptions\InvalidTagException;
+use FlarumConnection\Hydrators\AbstractHydrator;
+use FlarumConnection\Hydrators\FlarumTagsHydrator;
+use FlarumConnection\Serializers\AbstractSerializer;
+use FlarumConnection\Serializers\FlarumTagsSerializer;
 
 
 /**
  * Model class for Flarum tags
  */
-class FlarumTag extends JsonApiModel
+class FlarumTag extends AbstractModel
 {
 
     /**
@@ -50,12 +54,25 @@ class FlarumTag extends JsonApiModel
      */
     public $isRestricted;
 
-
     /**
      * The id of the tag
      * @var int
      */
     public $id;
+
+    /**
+     * Numbers of discussions
+     * @var int
+     */
+    private $discussions_count;
+
+    /**
+     * Position of the tag
+     * @var int
+     */
+    private $position;
+
+
 
     /**
      * Initialize the tag
@@ -67,8 +84,7 @@ class FlarumTag extends JsonApiModel
      * @param bool $isrestricted    Is the tag restricted with specific rights
      * @param int|null $id               The id of the tag
      */
-    public function __construct(string $name, string $slug, string $color, ?string $description, bool $isHidden, bool $isRestricted, ?int $id = null)
-    {
+    public function init(string $name, string $slug, string $color, ?string $description, bool $isHidden, bool $isRestricted, ?int $id = null){
         $this->name = $name;
         $this->slug = $slug;
         $this->color = $color;
@@ -80,63 +96,33 @@ class FlarumTag extends JsonApiModel
         $this->id = $id;
     }
 
+    /**
+     * Return the name of the model
+     * @return string
+     */
+    public function getModelName():string{
+        return 'Tag';
+    }
 
     /**
-     * Get the body for the creation of a tag
-     * @return array
+     * Retrieve the Serializer of the object
+     * @return AbstractSerializer
      */
-    public function getTagCreationBody(): array
+    public function getSerializer(): AbstractSerializer
     {
-        return [
-            'data' => [
-                'type' => 'tags',
-                'attributes' => [
-                    'name' => $this->name,
-                    'slug' =>$this->slug,
-                    'description' => $this->description,
-                    'color' => $this->color,
-                    'isHidden' => $this->isHidden,
-                    'isRestricted' => $this->isRestricted
-
-                ]
-
-            ]
-        ];
+        return new FlarumTagsSerializer();
     }
 
     /**
-     * Parse tag from JSON array
-     * @param array $json The JSOn array
-     * @return FlarumTag
-     * @throws InvalidTagException
+     * Retrieve the hydrator of the object
+     * @return AbstractHydrator
      */
-    public static function fromJSON(array $json):FlarumTag{
-
-        if (!self::validateRequiredFieldsFromDocument($json,['name','slug','color','isHidden']))
-        {
-
-            throw new InvalidTagException('Invalid json input for a tag model');
-        }
-        return new FlarumTag(self::extractAttributeFromDocument($json,'name'),self::extractAttributeFromDocument($json,'slug'),self::extractAttributeFromDocument($json,'color'),self::extractAttributeFromDocument($json,'description'),self::extractAttributeFromDocument($json,'isHidden'),false,self::extractIdFromDocument($json));
-
+    public function getHydrator(): AbstractHydrator
+    {
+        return new FlarumTagsHydrator();
     }
 
-    /**
-     * Return a list of tags
-     * @param array $json The json from the ws
-     * @return array            An array of FlarumTag object
-     */
-    public static function fromJSONList(array $json):array{
-        $ret = [];
-        foreach($json['data'] as $el){
-            $newformed = ['data' => $el];
-            try{
-                $ret[] =  self::fromJSON($newformed);
-            } catch(InvalidTagException $e){
-                // We ignore the exception right now
-            }
-        }
-        return $ret;
-    }
+
+
 
 }

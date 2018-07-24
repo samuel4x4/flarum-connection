@@ -1,12 +1,16 @@
 <?php
 namespace FlarumConnection\Models;
 
-use FlarumConnection\Exceptions\InvalidUserException;
+
+use FlarumConnection\Hydrators\AbstractHydrator;
+use FlarumConnection\Hydrators\FlarumDiscussionHydrator;
+use FlarumConnection\Serializers\AbstractSerializer;
+use FlarumConnection\Serializers\FlarumDiscussionsSerializer;
 
 /**
  * Model class for Flarum discussions
  */
-class FlarumDiscussion extends JsonApiModel
+class FlarumDiscussion extends AbstractModel
 {
     /**
      * Title of the post
@@ -44,6 +48,55 @@ class FlarumDiscussion extends JsonApiModel
     public $id;
 
     /**
+     * Start date of the discussion
+     * @var int
+     */
+    public $startTime;
+
+    /**
+     * Last post date
+     * @var int
+     */
+    public $lastTime;
+
+    /**
+     * Number of participants
+     * @var int
+     */
+    public $participantsCount;
+
+    /**
+     * Number of comments
+     * @var int
+     */
+    public $commentsCount;
+
+    /**
+     * Slug
+     * @var string
+     */
+    public $slug;
+
+    /**
+     * Number of the last post
+     * @var int
+     */
+    public $lastPostNumber;
+
+    /**
+     * First user to post
+     * @var FlarumUser
+     */
+    public $startUser;
+
+    /**
+     * Last user to post
+     * @var FlarumUser
+     */
+    public $lastUser;
+
+
+    /**
      * Initialize the post
      *
      * @param string $title The title of the post
@@ -51,90 +104,39 @@ class FlarumDiscussion extends JsonApiModel
      * @param array $tags Tags of the post
      * @param int|null $id
      */
-    public function __construct(string $title,string $content,array $tags,?int $id = null){
+    public function init(string $title,string $content,array $tags,?int $id = null){
         $this->title = $title;
         $this->content = $content;
         $this->tags = $tags;
         $this->id = $id;
     }
 
+
+
     /**
-     * Create the Body for discussion creation
-     *
-     * @return array
+     * Return the name of the model
+     * @return string
      */
-    public function getCreateDiscussionBody(): array
+    public function getModelName():string{
+        return 'Discussion';
+    }
+
+
+    /**
+     * Retrieve the Serializer of the object
+     * @return AbstractSerializer
+     */
+    public function getSerializer(): AbstractSerializer
     {
-        $tagsAdapted = [];
-        foreach ( $this->tags as $tag){
-            $tagsAdapted[] = [
-                'type' => 'tags',
-                'id' => "$tag"
-            ];
-        }
-        return [
-            'data' => [
-                'type' => 'discussions',
-                'attributes' => [
-                    'title' => $this->title,
-                    'content' => $this->content
-                ],
-                'relationships' => [
-                    'tags' => [
-                        'data' => $tagsAdapted
-                    ]
-                ]
-            ]
-        ];
-
+        return new FlarumDiscussionsSerializer();
     }
 
     /**
-     * Create the Body for discussion update
-     *
-     * @return array
+     * Retrieve the hydrator of the object
+     * @return AbstractHydrator
      */
-    public function getUpdateDiscussionBody(): array
+    public function getHydrator(): AbstractHydrator
     {
-        $tagsAdapted = [];
-        foreach ( $this->tags as $tag){
-            $tagsAdapted[] = [
-                'type' => 'tags',
-                'id' => "$tag"
-            ];
-        }
-        return [
-            'data' => [
-                'type' => 'discussions',
-                'id' => "$this->id",
-                'attributes' => [
-                    'title' => $this->title,
-                    'content' => $this->content
-                ],
-                'relationships' => [
-                    'tags' => [
-                        'data' => $tagsAdapted
-                    ]
-                ]
-            ]
-        ];
-
+        return new FlarumDiscussionHydrator();
     }
-
-    /**
-     * Extract a Flarum discussion object from json
-     *
-     * @param array $json The JSOn array
-     * @return FlarumDiscussion     Flarum discussion
-     * @throws InvalidUserException     Trigerred of the user is not well formated
-     */
-    public static function fromJSON(array $json):FlarumDiscussion{
-        if (!self::validateRequiredFieldsFromDocument($json,['title','slug','commentsCount','participantsCount','startTime','readTime']))
-        {
-            throw new InvalidUserException('Invalid json input for a user model');
-        }
-
-        return new FlarumDiscussion(self::extractAttributeFromDocument($json,'title'), '',[],self::extractIdFromDocument($json));
-    }
-
 }

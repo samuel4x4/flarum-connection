@@ -2,9 +2,9 @@
 namespace FlarumConnection\Exceptions;
 
 /**
- * Exception triggered on invalid user update
+ * Exception triggered on invalid discussion creation
  */
-class InvalidUserUpdateException extends \Exception{
+class InvalidUpdateException extends \RuntimeException{
     /**
      * Initialize
      *
@@ -13,4 +13,5 @@ class InvalidUserUpdateException extends \Exception{
     public function __construct(string $message){
         parent::__construct($message);
     }
+
 }

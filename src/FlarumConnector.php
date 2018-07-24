@@ -4,6 +4,8 @@ namespace FlarumConnection;
 require '../vendor/autoload.php';
 
 use FlarumConnection\Features\FlarumDiscussionsManager;
+use FlarumConnection\Features\FlarumGroupsManager;
+use FlarumConnection\Features\FlarumPostsManager;
 use FlarumConnection\Features\FlarumTagsManager;
 
 use Psr\Log\LoggerInterface;
@@ -70,6 +72,18 @@ class FlarumConnector{
     private $flarumTagManagement;
 
     /**
+     * Handle groups
+     * @var FlarumGroupsManager
+     */
+    private $flarumGroupManagement;
+
+    /**
+     * Handle posts
+     * @var FlarumPostsManager
+     */
+    private $flarumPostManagement;
+
+    /**
      * Initialize the service
      *
      * @param FlarumConnectorConfig $config  The configuration for the service
@@ -83,7 +97,9 @@ class FlarumConnector{
         $this->flarumUserManagement = new FlarumUserManagement($config,  $logger);
         $this->flarumDiscussionManagement = new FlarumDiscussionsManager($config,$logger);
         $this->flarumTagManagement = new FlarumTagsManager($config,$logger);
-        $this->listenners = [$this->flarumSSO, $this->flarumUserManagement, $this->flarumDiscussionManagement,$this->flarumTagManagement];
+        $this->flarumGroupManagement = new FlarumGroupsManager($config,$logger);
+        $this->flarumPostManagement = new FlarumPostsManager($config,$logger);
+        $this->listenners = [$this->flarumSSO, $this->flarumUserManagement, $this->flarumDiscussionManagement,$this->flarumTagManagement,$this->flarumGroupManagement,$this->flarumPostManagement];
         if($token !== null){
             $this->setToken($token);
         }
@@ -114,6 +130,7 @@ class FlarumConnector{
     public function getDiscussionManagement():FlarumDiscussionsManager{
         return $this->flarumDiscussionManagement;
     }
+
     /**
      * Get the tags feature
      * @return FlarumTagsManager  The discussion management feature
@@ -121,6 +138,23 @@ class FlarumConnector{
     public function getTagsManagement():FlarumTagsManager{
         return $this->flarumTagManagement;
     }
+
+    /**
+     * Get the groups feature
+     * @return FlarumTagsManager  The groups feature
+     */
+    public function getGroupsManagement():FlarumGroupsManager{
+        return $this->flarumGroupManagement;
+    }
+
+    /**
+     * Get the posts feature
+     * @return FlarumPostsManager  The groups feature
+     */
+    public function getPostsManagement():FlarumPostsManager{
+        return $this->flarumPostManagement;
+    }
+
 
 
     /**
@@ -163,10 +197,11 @@ class FlarumConnector{
     /**
      * Create a user
      *
-     * @param string $login                                       The login from the user
-     * @param string $password                                    The password from the user
-     * @param string $email                                       The email to set as user email
+     * @param string $login The login from the user
+     * @param string $password The password from the user
+     * @param string $email The email to set as user email
      * @return \GuzzleHttp\Promise\promiseinterface               A token or false if the login operation is a failure
+     * @throws Exceptions\InvalidUserException
      */
      public function signup(string $login,string $password,string $email):\GuzzleHttp\Promise\promiseinterface{
         $res =  $this->flarumSSO->signup($login,$password,$email)->wait();

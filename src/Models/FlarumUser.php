@@ -2,11 +2,16 @@
 namespace FlarumConnection\Models;
 
 use FlarumConnection\Exceptions\InvalidUserException;
+use FlarumConnection\Hydrators\AbstractHydrator;
+
+use FlarumConnection\Hydrators\FlarumUsersHydrator;
+use FlarumConnection\Serializers\AbstractSerializer;
+use FlarumConnection\Serializers\FlarumUsersSerializer;
 
 /**
  * Model class for Flarum user
  */
-class FlarumUser extends JsonApiModel
+class FlarumUser extends AbstractModel
 {
     /**
      * Id of the user
@@ -93,13 +98,31 @@ class FlarumUser extends JsonApiModel
     public $unreadNotifications;
 
     /**
+     * Password of the user
+     * @var string
+     */
+    public $password;
+
+    /**
+     * Indicate if the user is activated
+     * @var bool
+     */
+    public $isActivated;
+
+    /**
+     * Get groups of the user
+     * @var
+     */
+    public $groups;
+
+    /**
      * initialize a user object
      *
      * @param integer $userId         The id of the user
      * @param string  $username      The user name
      * @param string  $email         The email of the user
      */
-    public function __construct(int $userId, string $username, string $email)
+    public function init(int $userId, string $username, string $email)
     {
         $this->userId = $userId;
         $this->username = $username;
@@ -107,71 +130,67 @@ class FlarumUser extends JsonApiModel
     }
 
     /**
-     * Create a user from JSON input
-     *
-     * @param array $json Output from json parsing
-     * @return FlarumUser               The created user
-     * @throws InvalidUserException     If their is no user associated
+     * Initializ an object for a group update
+     * @param integer $userId         The id of the user
+     * @param string  $username       The user name
+     * @param array $groups           The groups of the user
      */
-    public static function fromJSON(array $json): FlarumUser
-    {
-        if (!self::validateRequiredFieldsFromDocument($json,['username','email']))
-        {
-            throw new InvalidUserException('Invalid json input for a user model');
+    public function initGroup(int $userId, string $username,array $groups){
+        $this->userId = $userId;
+        $this->username = $username;
+        $this->groups = $groups;
+    }
+
+    /**
+     * Add a new group to a user
+     * @param FlarumGroup $group The group to add
+     */
+    public function addToGroup(FlarumGroup $group){
+        if($this->groups === null){
+            $this->groups = [];
         }
-        $user = new FlarumUser(self::extractIdFromDocument($json), self::extractAttributeFromDocument($json,'username'), self::extractAttributeFromDocument($json,'email'));
-        $user->avatarUrl = self::extractAttributeFromDocument($json,'avatarUrl');
-        $user->bio = self::extractAttributeFromDocument($json,'bio');
-        $user->joinTime = self::parseDate(self::extractAttributeFromDocument($json,'joinTime'));
-        $user->commentsCount = self::extractAttributeFromDocument($json,'commentsCount');
-        $user->discussionsCount = self::extractAttributeFromDocument($json,'discussionsCount');
-        $user->lastSeenTime = self::parseDate(self::extractAttributeFromDocument($json,'lastSeenTime'));
-        //$user->readTime = self::parseDate(self::extractAttribute($json,'readTime'));
-        $user->unreadNotifications = self::extractAttributeFromDocument($json,'unreadNotificationsCount');
-        $user->newNotifications = self::extractAttributeFromDocument($json,'newNotificationsCount');
-        return $user;
-   
+        $this->groups[] = $group;
     }
 
     /**
-     * Get the password update data
-     * @param string $password    The password to change
-     * @return array    The array to be transformed to JSON
+     * Remove a group from a user
+     * @param int $id   The group to remove
      */
-    public function getPasswordUpdateBody(string $password): array
-    {
-        return [
-            'data' => [
-                'type' => 'users',
-                'id' => $this->userId,
-                'attributes' => [
-                    'username' => $this->username,
-                    'password' => $password,
-                ],
-            ],
-        ];
-
+    public function removeFromGroup(int $id){
+        foreach($this->groups as $key=>$group){
+            if($group->groupId === $id){
+                unset($this->groups[$key]);
+            }
+        }
     }
 
     /**
-     * Get the email update data
-     * @param string    $email    The email to change
-     * @return array    The array to be transformed to JSON
+     * Return the name of the model
+     * @return string
      */
-    public function getEmailUpdateBody(string $email): array
-    {
-        return [
-            'data' => [
-                'type' => 'users',
-                'id' => $this->userId,
-                'attributes' => [
-                    'username' => $this->username,
-                    'email' => $email,
-                ],
-            ],
-        ];
-
+    public function getModelName():string{
+        return 'User';
     }
+
+    /**
+     * Retrieve the Serializer of the object
+     * @return AbstractSerializer
+     */
+    public function getSerializer(): AbstractSerializer
+    {
+        return new FlarumUsersSerializer();
+    }
+
+    /**
+     * Retrieve the hydrator of the object
+     * @return AbstractHydrator
+     */
+    public function getHydrator(): AbstractHydrator
+    {
+        return new FlarumUsersHydrator();
+    }
+
+
 
 
 

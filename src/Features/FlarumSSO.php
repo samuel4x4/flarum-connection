@@ -5,7 +5,7 @@ use FlarumConnection\Models\FlarumConnectorConfig;
 use FlarumConnection\Models\FlarumToken;
 use FlarumConnection\Models\FlarumUser;
 use FlarumConnection\Exceptions\InvalidLoginException;
-use  FlarumConnection\Exceptions\InvalidUserCreationException;
+
 use \GuzzleHttp\Psr7\Request;
 use \Psr\Log\LoggerInterface;
 
@@ -91,54 +91,22 @@ class FlarumSSO extends AbstractFeature{
     /**
      * Create a new user
      *
-     * @param string $login         The login of the user
-     * @param string $password      The password of the user to be created
-     * @param string $email         The email to be sent
-     * @return \GuzzleHttp\Promise\promiseinterface     Promise of a user
+     * @param string $login The login of the user
+     * @param string $password The password of the user to be created
+     * @param string $email The email to be sent
+     * @return \Http\Promise\Promise
+     * @throws \FlarumConnection\Exceptions\InvalidUserException
      */
-    public function signup(string $login,string $password,string $email):\GuzzleHttp\Promise\promiseinterface {
-        $body = json_encode([
-            'data' => [
-                'type' => 'users',
-                'attributes' => [
-                    'username' => $login,
-                    'password' => $password,
-                    'email' => $email,
-                    'isActivated' => true
-                ]
-            ]
-        ]);
+    public function signup(string $login,string $password,string $email):\Http\Promise\Promise
+    {
+        $user = new FlarumUser();
+        $user->username = $login;
+        $user->password = $password;
+        $user->email = $email;
+        $user->isActivated = true;
 
-        $headers = [
-            'Content-Type' => 'application/json',
-            'Content-Length'=> strlen($body),
-            'Authorization' => 'Token ' . $this->config->flarumAPIKey. '; userId=1'
-        ];
+        return $this->insert($this->config->flarumUrl.self::CREATE_USER_PATH,$user,201,true);
 
-     
-    
-        $request = new Request('POST', $this->config->flarumUrl.self::CREATE_USER_PATH, $headers, $body);
-        $promise = $this->http->sendAsync($request);
-        return $promise->then(
-            function (\GuzzleHttp\Psr7\Response $res) {
-                if($res->getStatusCode() === 201){
-                    try{
-                        $content = json_decode($res->getBody(),true);    
-                        return FlarumUser::fromJSON($content);                   
-                    } catch(\Exception $e){       
-                        return new InvalidUserCreationException($e->getMessage());
-                    }
-                } 
-
-                $this->logger->debug('Invalid user creation '.$res->getStatusCode().' returned');
-                return new InvalidUserCreationException('Invalid user creation '.$res->getStatusCode().' returned');         
-
-            },
-            function (\Exception $e) {
-                $this->logger->debug('Exception trigerred on user creation'.$e->getMessage());
-                    return new InvalidUserCreationException($e->getMessage());
-            }
-        );
     }
 
 
@@ -161,12 +129,15 @@ class FlarumSSO extends AbstractFeature{
         return $promise->then(
             function (\GuzzleHttp\Psr7\Response  $res) {
                return $res->getStatusCode() === 200;
-            },function ( $e) {  
+            },function (\Exception $e) {
                 $this->logger->debug('Exception trigerred on is user connected'.$e->getMessage());          
                 return $e;
             });
 
     }
+
+
+
 
 
 

@@ -1,11 +1,14 @@
 <?php
 namespace FlarumConnection\Features;
 
+use FlarumConnection\Exceptions\InvalidObjectException;
 use \FlarumConnection\Exceptions\InvalidUserException;
-use \FlarumConnection\Exceptions\InvalidUserUpdateException;
+
 use \FlarumConnection\Models\FlarumConnectorConfig;
+use FlarumConnection\Models\FlarumGroup;
 use \FlarumConnection\Models\FlarumUser;
-use \GuzzleHttp\Psr7\Request;
+
+use Http\Promise\RejectedPromise;
 use \Psr\Log\LoggerInterface;
 
 
@@ -34,45 +37,30 @@ class FlarumUserManagement extends AbstractFeature
     /**
      * Get the  user
      * @param int|null $userId The id of the user of null if the objective is to get the current user
-     * @return \GuzzleHttp\Promise\promiseinterface The result of get user
+     * @param bool $admin
+     * @return \Http\Promise\Promise
      * @throws InvalidUserException When no users are asspcoayed with the request
      */
-    public function getUser(?int $userId = null): \GuzzleHttp\Promise\promiseinterface
+    public function getUser(int $userId = null,bool $admin = false): \Http\Promise\Promise
     {
-        if ($userId === null) {
-            $token = $this->getToken();
-            if($token === false){
-                throw new InvalidUserException('There is no currently defined user');
-            }
-            $userId = $this->token->userId;
-        }
-        $headers = [
-            'Content-Type:' => 'application/json',
-            'Authorization' => 'Token ' . $this->config->flarumAPIKey . '; userId=1',
+        return $this->getOne($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, new FlarumUser(),$admin);
+    }
 
-        ];
-        $request = new Request('GET', $this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $headers);
-        $promise = $this->http->sendAsync($request);
-        return $promise->then(
-            function (\GuzzleHttp\Psr7\Response $res) {
-                if ($res->getStatusCode() === 200) {
-                    try {
-                        $content = json_decode($res->getBody(),true);
-                        return FlarumUser::fromJSON($content);
-                    } catch (\Exception $e) {
-                        return new InvalidUserException($e->getMessage());
-                    }
+    /**
+     * Retrieve a user by user name
+     * @param string $username  Name of the user to search for
+     * @param bool $admin           Use admin mod
+     * @return \Http\Promise\Promise    A FlarumUser
+     */
+    public function getUserByUserName(string $username, bool $admin = false): \Http\Promise\Promise{
+        return $this->getAll($this->getUriSearchByUserName($username),new FlarumUser(),$admin)->then(
+            function(iterable $array) use ($username){
+                if($array===null || count($array) !== 1){
+                    return new RejectedPromise(new InvalidObjectException('User '.$username.'not found'));
                 }
-                $this->logger->debug('Invalid user retrieval ' . $res->getStatusCode() . ' returned');
-                return new InvalidUserException('Error during user retrieval');
-
-            },
-            function (\Exception $e) {
-                $this->logger->debug('Exception trigerred on user get' . $e->getMessage());
-                return new InvalidUserException('Error during user retrieval');
+                return $array[0];
             }
         );
-
     }
 
     /**
@@ -81,12 +69,12 @@ class FlarumUserManagement extends AbstractFeature
      * @param string $email The email of the user
      * @param string $username The login of the user
      * @param integer|null $userId The id of the user
-     * @return \GuzzleHttp\Promise\promiseinterface     A promise of an exception or of a user
+     * @return \Http\Promise\Promise
      * @throws InvalidUserException When the user is not
      */
-    public function updateEmail(string $email, string $username, int $userId = null): \GuzzleHttp\Promise\promiseinterface
+    public function updateEmail(string $email, string $username, int $userId = null, bool $admin = false): \Http\Promise\Promise
     {
-        return $this->updateEmailOrPassword($email, $username, '', false, $userId);
+        return $this->updateEmailOrPassword($email, $username, '', false, $userId,$admin);
     }
 
     /**
@@ -95,43 +83,74 @@ class FlarumUserManagement extends AbstractFeature
      * @param string $password The password of the user
      * @param string $username The login of the user
      * @param integer|null $userId The login of the user
-     * @return \GuzzleHttp\Promise\promiseinterface     A promise of an exception or of a user
+     * @param bool $admin
+     * @return \Http\Promise\Promise
      * @throws InvalidUserException
      */
-    public function updatePassword(string $password, string $username, int $userId = null): \GuzzleHttp\Promise\promiseinterface
+    public function updatePassword(string $password, string $username, int $userId = null,bool $admin = false): \Http\Promise\Promise
     {
-        return $this->updateEmailOrPassword('', $username, $password, true, $userId);
+        return $this->updateEmailOrPassword('', $username, $password, true, $userId,$admin);
+    }
+
+    /**
+     * Add a user to a group
+     * @param int $userId               The id of the user
+     * @param int $groupId              The id of the group
+     * @param bool $admin               Do it in admin mod
+     * @return \Http\Promise\Promise    A user
+     */
+    public function addToGroup(int $userId, int $groupId,bool $admin = false){
+        return $this->getUser($userId,$admin)->then(
+            function (FlarumUser $user) use ($groupId,$userId,$admin){
+                $newGroup = new FlarumGroup();
+                $newGroup->groupId = $groupId;
+                $user->addToGroup($newGroup);
+                $userUpdate = new FlarumUser();
+                $userUpdate->initGroup($userId,$user->username,$user->groups);
+                return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $userUpdate, 200, $admin)->wait();
+            },
+            function(\Exception $e){
+                return $e;
+            }
+        );
+    }
+
+    /**
+     * Remove a user from a group
+     * @param int $userId               The id of the user
+     * @param int $groupId              The id of the group
+     * @param bool $admin               Do it in admin mod
+     * @return \Http\Promise\Promise    A user
+     */
+    public function removeFromGroup(int $userId, int $groupId,bool $admin = false){
+        return $this->getUser($userId,$admin)->then(
+            function (FlarumUser $user) use ($groupId,$userId,$admin){
+                $user->removeFromGroup($groupId);
+                $userUpdate = new FlarumUser();
+                $userUpdate->initGroup($userId,$user->username,$user->groups);
+                return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $userUpdate, 200, $admin)->wait();
+
+            },
+            function(\Exception $e){
+                return $e;
+            }
+        );
     }
 
     /**
      * Delete an existing user
      *
      * @param int $userId The id of the user to delete
-     * @return \GuzzleHttp\Promise\promiseinterface     A promise of an exception or true
+     * @return \Http\Promise\Promise
+     * @throws InvalidUserException
      */
-    public function deleteUser(int $userId): \GuzzleHttp\Promise\promiseinterface
-    {
-        $headers = [
-            'Content-Type:' => 'application/json',
-            'Authorization' => 'Token ' . $this->config->flarumAPIKey . '; userId=1',
-        ];
-
-        $request = new Request('DELETE', $this->config->flarumUrl . self::GET_USER_PATH .'/'.$userId, $headers);
-        $promise = $this->http->sendAsync($request);
-        return $promise->then(
-            function (\GuzzleHttp\Psr7\Response $res) {
-                if ($res->getStatusCode() === 204) {
-                    return true;
-                }
-                $this->logger->debug('Invalid user deletion ' . $res->getStatusCode() . ' returned');
-                return new InvalidUserUpdateException('Invalid user deletion ' . $res->getStatusCode() . ' returned');
-
-            },
-            function (\Exception $e) {
-                $this->logger->debug('Exception trigerred on user delete' . $e->getMessage());
-                return new InvalidUserUpdateException('Exception trigerred on user delete');
-            }
-        );
+    public function deleteUser(int $userId): \Http\Promise\Promise{
+        //Delete a user is an admin only feature
+        return $this->delete(
+            $this->config->flarumUrl . self::GET_USER_PATH .'/'.$userId,
+            new FlarumUser(),
+            204,
+            true);
 
     }
 
@@ -143,10 +162,11 @@ class FlarumUserManagement extends AbstractFeature
      * @param string $password The password of the user (can be empty)
      * @param boolean $updatePassword If true will update the password, otherwise will update the email
      * @param integer|null $userId Id of the user
-     * @return \GuzzleHttp\Promise\promiseinterface     A promise of an exception or of a user
-     * @throws InvalidUserException           When there is no user associated
+     * @param bool $admin
+     * @return \Http\Promise\Promise
+     * @throws InvalidUserException When there is no user associated
      */
-    private function updateEmailOrPassword(string $email, string $username, string $password, bool $updatePassword, int $userId = null): \GuzzleHttp\Promise\promiseinterface
+    private function updateEmailOrPassword(string $email, string $username, string $password, bool $updatePassword, int $userId = null, bool $admin = false): \Http\Promise\Promise
     {
         if ($userId === null) {
             $token = $this->getToken();
@@ -155,44 +175,32 @@ class FlarumUserManagement extends AbstractFeature
             }
             $userId = $this->token->userId;
         }
-        $newUser = new FlarumUser($userId, $username, '');
-
         if ($updatePassword) {
-            $body = json_encode($newUser->getPasswordUpdateBody($password));
-        } else {
-            $body = json_encode($newUser->getEmailUpdateBody($email));
+            $user = new FlarumUser();
+            $user->username = $username;
+            $user->userId = $userId;
+            $user->password = $password;
+        } else{
+            $user = new FlarumUser();
+            $user->username = $username;
+            $user->userId = $userId;
+            $user->email = $email;
         }
+        return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $user, 200, $admin);
 
-        $headers = [
-            'Content-Type:' => 'application/json',
-            'Authorization' => 'Token ' . $this->config->flarumAPIKey . '; userId=1',
-            'Content-Length' => strlen($body),
-        ];
-        $request = new Request('PATCH', $this->config->flarumUrl . FlarumSSO::CREATE_USER_PATH.'/'.$userId, $headers, $body);
-        $promise = $this->http->sendAsync($request);
-        return $promise->then(
-            function (\GuzzleHttp\Psr7\Response $res) {
-                if ($res->getStatusCode() === 200) {
-                    try {
-                        $content = json_decode($res->getBody(),true);
-                        return FlarumUser::fromJSON($content);
-                    } catch (\Exception $e) {
-                        var_dump($e->getMessage());
-                        return new InvalidUserUpdateException($e->getMessage());
-                    }
-                }
-                $content = json_decode($res->getBody());
-                var_dump($content);
-                $this->logger->debug('Invalid user update ' . $res->getStatusCode() . ' returned');
-                return new InvalidUserUpdateException('Invalid user update ' . $res->getStatusCode() . ' returned');
+    }
 
-            },
-            function (\Exception $e) {
-                var_dump($e->getMessage());
-                $this->logger->debug('Exception trigerred on user update' . $e->getMessage());
-                return new InvalidUserUpdateException('Exception trigerred on user update');
-            }
-        );
+    /**
+     * Return the uri to search by user name
+     * @param string $userName  The name to search for
+     * @return string   The uri to use
+     */
+    private function getUriSearchByUserName(string $userName){
+        return $this->config->flarumUrl . self::GET_USER_PATH . '?'
+            .urlencode('filter[q]').'='.urlencode($userName).
+            '&'.urlencode('page[limit]').'=1';
+
+
     }
 
 }

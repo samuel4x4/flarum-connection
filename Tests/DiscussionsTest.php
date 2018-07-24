@@ -23,10 +23,9 @@ final class DiscussionsTest extends TestCase
     public function testCreate()
     {
         $this->createInstance();
-        $$this->createAndLogin();
+        $this->createAndLogin();
 
-        $res = $this->fConnector->getDiscussionManagement()->postTopic('Hello title', 'My content', [1])->wait();
-
+        $res = $this->fConnector->getDiscussionManagement()->postTopic('Hello title', 'My content', [1],true)->wait();
         $this->assertInstanceOf(FlarumDiscussion::class,$res);
         $this->assertEquals('Hello title',$res->title);
 
@@ -37,20 +36,35 @@ final class DiscussionsTest extends TestCase
      *  Test the update of a discussion
      * @throws \Exception
      */
-    public function testUpdate()
+    public function testUpdate(): void
     {
         $this->createInstance();
         $this->createAndLogin();
 
-        $res = $this->fConnector->getDiscussionManagement()->postTopic('Hello title', 'My content', [1])->wait();
+        $res = $this->fConnector->getDiscussionManagement()->postTopic('Hello title', 'My content', [1],true)->wait();
 
         $this->assertInstanceOf( FlarumDiscussion::class,$res);
+        $this->assertNotEmpty($res->id);
 
-        $res2 = $this->fConnector->getDiscussionManagement()->updateTopic($res->id,'Hello title2', 'My content2', [1])->wait();
+        $res2 = $this->fConnector->getDiscussionManagement()->updateTopic($res->id,'Hello title3', 'My content2', [1],true)->wait();
         $this->assertInstanceOf(FlarumDiscussion::class,$res2) ;
-        $this->assertEquals('Hello title2',$res2->title);
+        $this->assertEquals('Hello title3',$res2->title);
 
     }
 
+    /**
+     * @throws \FlarumConnection\Exceptions\InvalidUserException
+     * @throws \Exception
+     */
+    public function testGet(): void
+    {
+        $this->createInstance();
+        $this->createAndLogin();
+
+        $res = $this->fConnector->getDiscussionManagement()->getDiscussions('testag')->wait();
+        $this->assertCount(1, $res);
+
+
+    }
 }
 

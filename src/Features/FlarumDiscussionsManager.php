@@ -2,14 +2,15 @@
 
 namespace FlarumConnection\Features;
 
-use FlarumConnection\Exceptions\InvalidDiscussionCreationException;
-use FlarumConnection\Exceptions\InvalidDiscussionException;
-use FlarumConnection\Exceptions\InvalidDiscussionUpdateException;
+
 use FlarumConnection\Exceptions\InvalidUserException;
+
 use FlarumConnection\Models\FlarumConnectorConfig;
 use FlarumConnection\Models\FlarumDiscussion;
-use \GuzzleHttp\Psr7\Request;
+
+
 use \Psr\Log\LoggerInterface;
+
 
 /**
  * Handle topics & posts features of Flarum
@@ -39,51 +40,16 @@ class FlarumDiscussionsManager extends AbstractFeature
      * @param string $title Title of the topic
      * @param string $content Content of the topic
      * @param array $tags Tags associated (array of int)
-     * @return \GuzzleHttp\Promise\promiseinterface     A promise of an exception or of a topic
-     * @throws InvalidUserException                 When the user is not logged in
+     * @param bool $admin
+     * @return \Http\Promise\Promise
+     * @throws InvalidUserException When the user is not logged in
      */
-    public function postTopic(string $title, string $content, array $tags): \GuzzleHttp\Promise\promiseinterface
+    public function postTopic(string $title, string $content, array $tags,bool $admin = false): \Http\Promise\Promise
     {
+        $disc = new FlarumDiscussion();
+        $disc->init($title, $content, $tags);
 
-        $token = $this->getToken();
-        if ($token === false) {
-            throw new InvalidUserException('There is no currently defined user');
-        }
-
-
-        $disc = new FlarumDiscussion($title, $content, $tags);
-        $body = json_encode((object)$disc->getCreateDiscussionBody());
-
-        $headers = [
-            'Content-Type:' => 'application/json',
-            'cookie' => 'flarum_remember=' . $token->token,
-            'Authorization' => 'Token ' . $token->token . ';',
-            'Content-Length' => strlen($body),
-        ];
-
-        $request = new Request('POST', $this->config->flarumUrl . self::DISCUSSIONS_PATH, $headers, $body);
-        $promise = $this->http->sendAsync($request);
-        return $promise->then(
-            function (\GuzzleHttp\Psr7\Response $res) {
-                if ($res->getStatusCode() === 201) {
-                    try {
-
-                        $content = json_decode($res->getBody(), true);
-                        return FlarumDiscussion::fromJSON($content);
-                    } catch (\Exception $e) {
-                        return new InvalidDiscussionException($e->getMessage());
-                    }
-                }
-                $this->logger->debug('Exception trigerred on discussion creation ' . $res->getStatusCode() . ' returned');
-                return new InvalidDiscussionCreationException('Error during discussion creation');
-
-            },
-            function (\Exception $e) {
-                $this->logger->debug('Exception trigerred on discussion creation' . $e->getMessage());
-                return new InvalidDiscussionCreationException('Exception trigerred on discussion creation');
-            }
-        );
-
+        return $this->insert($this->config->flarumUrl . self::DISCUSSIONS_PATH ,$disc,201,$admin);
     }
 
     /**
@@ -92,51 +58,50 @@ class FlarumDiscussionsManager extends AbstractFeature
      * @param string $title The title of the topic
      * @param string $content The content of the topic
      * @param array $tags Tags to set
-     * @return \GuzzleHttp\Promise\promiseinterface     The discussion object
+     * @return \Http\Promise\Promise
      * @throws InvalidUserException     Trigerred if the user is not connected
      */
-    public function updateTopic(int $id, string $title, string $content, array $tags): \GuzzleHttp\Promise\promiseinterface
+    public function updateTopic(int $id, string $title, string $content, array $tags,bool $admin = false): \Http\Promise\Promise
     {
-        $token = $this->getToken();
-        if ($token === false) {
-            throw new InvalidUserException('There is no currently defined user');
-        }
+        $disc = new FlarumDiscussion();
+        $disc->init($title, $content, $tags);
+        return $this->update($this->config->flarumUrl . self::DISCUSSIONS_PATH . '/' . $id,$disc,200,$admin);
 
-        $disc = new FlarumDiscussion($title, $content, $tags,$id);
-        $body = json_encode((object)$disc->getUpdateDiscussionBody());
-
-
-        $headers = [
-            'Content-Type:' => 'application/json',
-            'cookie' => 'flarum_remember=' . $token->token,
-            'Authorization' => 'Token ' . $token->token . ';',
-            'Content-Length' => strlen($body),
-        ];
-
-        $disc = new FlarumDiscussion($title, $content, $tags);
-        $body = json_encode((object)$disc->getCreateDiscussionBody());
-        $request = new Request('PATCH', $this->config->flarumUrl . self::DISCUSSIONS_PATH . '/' . $id, $headers, $body);
-        $promise = $this->http->sendAsync($request);
-        return $promise->then(
-            function (\GuzzleHttp\Psr7\Response $res) {
-                if ($res->getStatusCode() === 200) {
-                    try {
-
-                        $content = json_decode($res->getBody(), true);
-                        return FlarumDiscussion::fromJSON($content);
-                    } catch (\Exception $e) {
-                        return new InvalidDiscussionException($e->getMessage());
-                    }
-                }
-                $this->logger->debug('Exception trigerred on discussion update ' . $res->getStatusCode() . ' returned');
-                return new InvalidDiscussionUpdateException('Error during discussion update');
-
-            },
-            function (\Exception $e) {
-                $this->logger->debug('Exception trigerred on discussion creation' . $e->getMessage());
-                return new InvalidDiscussionUpdateException('Exception trigerred on discussion update');
-            }
-        );
     }
 
+    /**
+     * return a list of discussions
+     * @param string $tag
+     * @param int $offset
+     * @param bool|null $admin
+     * @return \Http\Promise\Promise
+     * @throws InvalidUserException
+     */
+    public function getDiscussions(string $tag, int $offset = 0,?bool $admin = false)
+    {
+
+        return $this->getAll($this->getUri($tag, $offset), new FlarumDiscussion(), $admin);
+    }
+
+
+    /**
+     * Build url for tag
+     * @param null|string $tag
+     * @param int $offset
+     * @return string
+     */
+    private function getUri(?string $tag, int $offset = 0)
+    {
+        $uri = $this->config->flarumUrl . self::DISCUSSIONS_PATH . '?include=' . urlencode('startUser,lastUser,startPost,tags');
+        if ($tag === null) {
+            $uri = $uri . '&tags&&';
+        } else {
+            $uri = $uri . '&' . urlencode('filter[q]') . '=' . urlencode('tag' . ':' . $tag);
+        }
+        if ($offset !== 0) {
+            $uri = $uri . '&' . urlencode('page[offset]=') . $offset;
+        }
+        return $uri;
+
+    }
 }

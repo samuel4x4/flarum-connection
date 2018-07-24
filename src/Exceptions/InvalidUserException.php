@@ -4,7 +4,7 @@ namespace FlarumConnection\Exceptions;
 /**
  * Exception triggered on invalid user retrieval
  */
-class InvalidUserException extends \Exception{
+class InvalidUserException extends \RuntimeException{
 
     /**
      * Initialize

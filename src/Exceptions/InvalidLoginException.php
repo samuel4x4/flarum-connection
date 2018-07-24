@@ -4,7 +4,7 @@ namespace FlarumConnection\Exceptions;
 /**
  * Exception triggered on invalid login
  */
-class InvalidLoginException extends \Exception{
+class InvalidLoginException extends \RuntimeException{
 
     /**
      * Initialize

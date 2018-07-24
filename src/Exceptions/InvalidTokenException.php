@@ -4,7 +4,7 @@ namespace FlarumConnection\Exceptions;
 /**
  * Exception triggered on invalid token return from flarum
  */
-class InvalidTokenException extends \Exception{
+class InvalidTokenException extends \RuntimeException{
 
     /**
      * Initialize

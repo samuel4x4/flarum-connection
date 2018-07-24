@@ -2,16 +2,16 @@
 namespace FlarumConnection\Exceptions;
 
 /**
- * Exception triggered on invalid tag update
+ * Exception triggered on invalid discussion creation
  */
-class InvalidTagUpdateException extends \Exception{
-
+class InvalidCreationException extends \RuntimeException{
     /**
      * Initialize
      *
      * @param string $message   The message associated to the exception
      */
     public function __construct(string $message){
-            parent::__construct($message);
+        parent::__construct($message);
     }
+
 }

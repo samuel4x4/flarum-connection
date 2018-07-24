@@ -2,9 +2,9 @@
 namespace FlarumConnection\Exceptions;
 
 /**
- * Exception triggered on invalid tag retrieval
+ * Exception triggered on invalid discussion creation
  */
-class InvalidTagException extends \Exception{
+class InvalidObjectException extends \RuntimeException{
     /**
      * Initialize
      *
