@@ -1,7 +1,7 @@
 <?php
 namespace FlarumConnection\Models;
 
-use FlarumConnection\Exceptions\InvalidUserException;
+
 use FlarumConnection\Hydrators\AbstractHydrator;
 
 use FlarumConnection\Hydrators\FlarumUsersHydrator;
@@ -122,7 +122,7 @@ class FlarumUser extends AbstractModel
      * @param string  $username      The user name
      * @param string  $email         The email of the user
      */
-    public function init(int $userId, string $username, string $email)
+    public function init(int $userId, string $username, string $email): void
     {
         $this->userId = $userId;
         $this->username = $username;
@@ -135,7 +135,8 @@ class FlarumUser extends AbstractModel
      * @param string  $username       The user name
      * @param array $groups           The groups of the user
      */
-    public function initGroup(int $userId, string $username,array $groups){
+    public function initGroup(int $userId, string $username,array $groups): void
+    {
         $this->userId = $userId;
         $this->username = $username;
         $this->groups = $groups;
@@ -145,7 +146,8 @@ class FlarumUser extends AbstractModel
      * Add a new group to a user
      * @param FlarumGroup $group The group to add
      */
-    public function addToGroup(FlarumGroup $group){
+    public function addToGroup(FlarumGroup $group): void
+    {
         if($this->groups === null){
             $this->groups = [];
         }
@@ -156,7 +158,8 @@ class FlarumUser extends AbstractModel
      * Remove a group from a user
      * @param int $id   The group to remove
      */
-    public function removeFromGroup(int $id){
+    public function removeFromGroup(int $id): void
+    {
         foreach($this->groups as $key=>$group){
             if($group->groupId === $id){
                 unset($this->groups[$key]);

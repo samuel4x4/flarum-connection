@@ -17,22 +17,22 @@ class FlarumSSO extends AbstractFeature{
     /**
      * Path for Get token
      */
-    const GET_TOKEN_PATH = '/api/token';
+     public const GET_TOKEN_PATH = '/api/token';
 
     /**
      * Path to get notifications
      */
-    const GET_NOTIFICATIONS_PATH = '/api/notifications';
+     public const GET_NOTIFICATIONS_PATH = '/api/notifications';
 
         /**
      * Path to get notifications
      */
-    const CREATE_USER_PATH = '/api/users';
+     public const CREATE_USER_PATH = '/api/users';
 
     /**
      * Name of the flarum cookie
      */
-    const FLARUM_COOKIE = 'flarum_remember';
+     public const FLARUM_COOKIE = 'flarum_remember';
 
 
     /**

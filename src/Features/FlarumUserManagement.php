@@ -21,7 +21,7 @@ class FlarumUserManagement extends AbstractFeature
     /**
      * Path for Get User
      */
-    const GET_USER_PATH = '/api/users';
+     public const GET_USER_PATH = '/api/users';
 
     /**
      * Initialize the feature with the config
@@ -37,25 +37,24 @@ class FlarumUserManagement extends AbstractFeature
     /**
      * Get the  user
      * @param int|null $userId The id of the user of null if the objective is to get the current user
-     * @param bool $admin
+     * @param int|null $user
      * @return \Http\Promise\Promise
-     * @throws InvalidUserException When no users are asspcoayed with the request
      */
-    public function getUser(int $userId = null,bool $admin = false): \Http\Promise\Promise
+    public function getUser(int $userId = null,?int $user = null): \Http\Promise\Promise
     {
-        return $this->getOne($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, new FlarumUser(),$admin);
+        return $this->getOne($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, new FlarumUser(),$user);
     }
 
     /**
      * Retrieve a user by user name
-     * @param string $username  Name of the user to search for
-     * @param bool $admin           Use admin mod
+     * @param string $username Name of the user to search for
+     * @param int|null $user
      * @return \Http\Promise\Promise    A FlarumUser
      */
-    public function getUserByUserName(string $username, bool $admin = false): \Http\Promise\Promise{
-        return $this->getAll($this->getUriSearchByUserName($username),new FlarumUser(),$admin)->then(
+    public function getUserByUserName(string $username, ?int $user = null): \Http\Promise\Promise{
+        return $this->getAll($this->getUriSearchByUserName($username),new FlarumUser(),$user)->then(
             function(iterable $array) use ($username){
-                if($array===null || count($array) !== 1){
+                if($array===null || \count($array) !== 1){
                     return new RejectedPromise(new InvalidObjectException('User '.$username.'not found'));
                 }
                 return $array[0];
@@ -69,12 +68,12 @@ class FlarumUserManagement extends AbstractFeature
      * @param string $email The email of the user
      * @param string $username The login of the user
      * @param integer|null $userId The id of the user
-     * @return \Http\Promise\Promise
-     * @throws InvalidUserException When the user is not
+     * @param int|null $user    The user to call the API
+     * @return \Http\Promise\Promise    A user
      */
-    public function updateEmail(string $email, string $username, int $userId = null, bool $admin = false): \Http\Promise\Promise
+    public function updateEmail(string $email, string $username, int $userId = null, ?int $user = null): \Http\Promise\Promise
     {
-        return $this->updateEmailOrPassword($email, $username, '', false, $userId,$admin);
+        return $this->updateEmailOrPassword($email, $username, '', false, $userId,$user);
     }
 
     /**
@@ -83,31 +82,31 @@ class FlarumUserManagement extends AbstractFeature
      * @param string $password The password of the user
      * @param string $username The login of the user
      * @param integer|null $userId The login of the user
-     * @param bool $admin
-     * @return \Http\Promise\Promise
-     * @throws InvalidUserException
+     * @param int|null $user    The user to call the WS
+     * @return \Http\Promise\Promise    A user promise
      */
-    public function updatePassword(string $password, string $username, int $userId = null,bool $admin = false): \Http\Promise\Promise
+    public function updatePassword(string $password, string $username, int $userId = null,?int $user = null): \Http\Promise\Promise
     {
-        return $this->updateEmailOrPassword('', $username, $password, true, $userId,$admin);
+        return $this->updateEmailOrPassword('', $username, $password, true, $userId,$user);
     }
 
     /**
      * Add a user to a group
-     * @param int $userId               The id of the user
-     * @param int $groupId              The id of the group
-     * @param bool $admin               Do it in admin mod
+     * @param int $userId The id of the user
+     * @param int $groupId The id of the group
+     * @param int|null $user
      * @return \Http\Promise\Promise    A user
      */
-    public function addToGroup(int $userId, int $groupId,bool $admin = false){
-        return $this->getUser($userId,$admin)->then(
-            function (FlarumUser $user) use ($groupId,$userId,$admin){
+    public function addToGroup(int $userId, int $groupId,?int $user = null): \Http\Promise\Promise
+    {
+        return $this->getUser($userId,$user)->then(
+            function (FlarumUser $fUser) use ($groupId,$userId,$user){
                 $newGroup = new FlarumGroup();
                 $newGroup->groupId = $groupId;
-                $user->addToGroup($newGroup);
+                $fUser->addToGroup($newGroup);
                 $userUpdate = new FlarumUser();
-                $userUpdate->initGroup($userId,$user->username,$user->groups);
-                return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $userUpdate, 200, $admin)->wait();
+                $userUpdate->initGroup($userId,$fUser->username,$fUser->groups);
+                return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $userUpdate, 200, $user)->wait();
             },
             function(\Exception $e){
                 return $e;
@@ -117,18 +116,19 @@ class FlarumUserManagement extends AbstractFeature
 
     /**
      * Remove a user from a group
-     * @param int $userId               The id of the user
-     * @param int $groupId              The id of the group
-     * @param bool $admin               Do it in admin mod
-     * @return \Http\Promise\Promise    A user
+     * @param int $userId The id of the user
+     * @param int $groupId The id of the group
+     * @param int|null $user    The user id for the call of the ws
+     * @return \Http\Promise\Promise    A promise of a boolean
      */
-    public function removeFromGroup(int $userId, int $groupId,bool $admin = false){
-        return $this->getUser($userId,$admin)->then(
-            function (FlarumUser $user) use ($groupId,$userId,$admin){
-                $user->removeFromGroup($groupId);
+    public function removeFromGroup(int $userId, int $groupId,?int $user = null): \Http\Promise\Promise
+    {
+        return $this->getUser($userId,$user)->then(
+            function (FlarumUser $flUser) use ($groupId,$userId,$user){
+                $flUser->removeFromGroup($groupId);
                 $userUpdate = new FlarumUser();
-                $userUpdate->initGroup($userId,$user->username,$user->groups);
-                return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $userUpdate, 200, $admin)->wait();
+                $userUpdate->initGroup($userId,$flUser->username,$flUser->groups);
+                return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $userUpdate, 200, $user)->wait();
 
             },
             function(\Exception $e){
@@ -150,7 +150,7 @@ class FlarumUserManagement extends AbstractFeature
             $this->config->flarumUrl . self::GET_USER_PATH .'/'.$userId,
             new FlarumUser(),
             204,
-            true);
+            null);
 
     }
 
@@ -162,11 +162,10 @@ class FlarumUserManagement extends AbstractFeature
      * @param string $password The password of the user (can be empty)
      * @param boolean $updatePassword If true will update the password, otherwise will update the email
      * @param integer|null $userId Id of the user
-     * @param bool $admin
-     * @return \Http\Promise\Promise
-     * @throws InvalidUserException When there is no user associated
+     * @param int|null $user        The user to call the ws
+     * @return \Http\Promise\Promise    A promise of a user
      */
-    private function updateEmailOrPassword(string $email, string $username, string $password, bool $updatePassword, int $userId = null, bool $admin = false): \Http\Promise\Promise
+    private function updateEmailOrPassword(string $email, string $username, string $password, bool $updatePassword, int $userId = null, ?int $user = null): \Http\Promise\Promise
     {
         if ($userId === null) {
             $token = $this->getToken();
@@ -176,17 +175,17 @@ class FlarumUserManagement extends AbstractFeature
             $userId = $this->token->userId;
         }
         if ($updatePassword) {
-            $user = new FlarumUser();
-            $user->username = $username;
-            $user->userId = $userId;
-            $user->password = $password;
+            $flUser = new FlarumUser();
+            $flUser->username = $username;
+            $flUser->userId = $userId;
+            $flUser->password = $password;
         } else{
-            $user = new FlarumUser();
-            $user->username = $username;
-            $user->userId = $userId;
-            $user->email = $email;
+            $flUser = new FlarumUser();
+            $flUser->username = $username;
+            $flUser->userId = $userId;
+            $flUser->email = $email;
         }
-        return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $user, 200, $admin);
+        return $this->update($this->config->flarumUrl . self::GET_USER_PATH . '/' . $userId, $flUser, 200, $user);
 
     }
 
@@ -195,7 +194,8 @@ class FlarumUserManagement extends AbstractFeature
      * @param string $userName  The name to search for
      * @return string   The uri to use
      */
-    private function getUriSearchByUserName(string $userName){
+    private function getUriSearchByUserName(string $userName): string
+    {
         return $this->config->flarumUrl . self::GET_USER_PATH . '?'
             .urlencode('filter[q]').'='.urlencode($userName).
             '&'.urlencode('page[limit]').'=1';

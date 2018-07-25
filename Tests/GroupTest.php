@@ -27,7 +27,7 @@ final class GroupTest extends TestCase
         $this->createInstance();
         $this->createAndLogin();
         $nameTag = uniqid('', false);
-        $res = $this->fConnector->getGroupsManagement()->addGroup($nameTag,$nameTag.'s','#fgae26','bolt',true)->wait();
+        $res = $this->fConnector->getGroupsManagement()->addGroup($nameTag,$nameTag.'s','#fgae26','bolt',null)->wait();
         $this->assertInstanceOf(FlarumGroup::class,$res);
         $this->assertEquals($res->nameSingular,$nameTag);
         $this->assertEquals($res->namePlural,$nameTag.'s');
@@ -45,7 +45,7 @@ final class GroupTest extends TestCase
         $this->createInstance();
         $this->createAndLogin();
         $nameTag = uniqid('', false);
-        $res = $this->fConnector->getGroupsManagement()->addGroup($nameTag,$nameTag.'s','#fgae26','bolt',true)->wait();
+        $res = $this->fConnector->getGroupsManagement()->addGroup($nameTag,$nameTag.'s','#fgae26','bolt',null)->wait();
         $this->assertInstanceOf(FlarumGroup::class,$res);
         $this->assertEquals($res->nameSingular,$nameTag);
         $this->assertEquals($res->namePlural,$nameTag.'s');
@@ -53,7 +53,7 @@ final class GroupTest extends TestCase
         $this->assertEquals($res->icon,'bolt');
         $this->assertNotEmpty($res->groupId);
 
-        $res2 = $this->fConnector->getGroupsManagement()->updateGroup($nameTag.'2',$nameTag.'s2','#fgae25','wrench',$res->groupId,true)->wait();
+        $res2 = $this->fConnector->getGroupsManagement()->updateGroup($nameTag.'2',$nameTag.'s2','#fgae25','wrench',$res->groupId,null)->wait();
         $this->assertInstanceOf(FlarumGroup::class,$res2);
         $this->assertEquals($res2->nameSingular,$nameTag.'2');
         $this->assertEquals($res2->namePlural,$nameTag.'s2');
@@ -71,7 +71,7 @@ final class GroupTest extends TestCase
         $this->createInstance();
         $this->createAndLogin();
         $nameTag = uniqid('', false);
-        $res = $this->fConnector->getGroupsManagement()->addGroup($nameTag,$nameTag.'s','#fgae26','bolt',true)->wait();
+        $res = $this->fConnector->getGroupsManagement()->addGroup($nameTag,$nameTag.'s','#fgae26','bolt',null)->wait();
         $this->assertInstanceOf(FlarumGroup::class,$res);
         $this->assertEquals($res->nameSingular,$nameTag);
         $this->assertEquals($res->namePlural,$nameTag.'s');
@@ -79,10 +79,10 @@ final class GroupTest extends TestCase
         $this->assertEquals($res->icon,'bolt');
         $this->assertNotEmpty($res->groupId);
 
-        $res2 = $this->fConnector->getGroupsManagement()->deleteGroup($res->groupId,true)->wait();
+        $res2 = $this->fConnector->getGroupsManagement()->deleteGroup($res->groupId,null)->wait();
         $this->assertTrue($res2);
 
-        $res3 = $this->fConnector->getGroupsManagement()->getGroups(true)->wait();
+        $res3 = $this->fConnector->getGroupsManagement()->getGroups(null)->wait();
 
         $found = false;
         foreach($res3 as $group){
@@ -102,7 +102,7 @@ final class GroupTest extends TestCase
 
         $this->createAndLogin();
         $nameTag = uniqid('', false);
-        $res = $this->fConnector->getGroupsManagement()->getGroups(true)->wait();
+        $res = $this->fConnector->getGroupsManagement()->getGroups(null)->wait();
         $this->assertInternalType('array',$res) ;
 
     }

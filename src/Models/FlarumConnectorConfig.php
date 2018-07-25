@@ -47,21 +47,25 @@ class FlarumConnectorConfig{
      */
     public $flarumLifeTime;
 
+    /**
+     * Default user for Flarum
+     * @var int
+     */
+    public $flarumDefaultUser;
+
 
     /**
      * Initialize the config
      *
-     * @param string $flarumUrl         Url of the Flarum forum
-     * @param string $iframeFlarumUrl   Url of the Page where will be located the iframe containing the forum
-     * @param string $loginUrl          Url of the login form
-     * @param string $rootDomain        Root domain used (for the cookies)
-     * @param string $flarumAPIKey      API key of Flarum api for administrative tasks
-     * @param int    $flarumLifeTime    Life lenght of the cookie set
+     * @param string $flarumUrl Url of the Flarum forum
+     * @param string $rootDomain Root domain used (for the cookies)
+     * @param string $flarumAPIKey API key of Flarum api for administrative tasks
+     * @param int $flarumDefaultUser    The default admin user for Flarum
+     * @param int $flarumLifeTime Life lenght of the cookie set
      */
-    public function __construct(string $flarumUrl,string $iframeFlarumUrl,string $loginUrl,string $rootDomain,string $flarumAPIKey,int $flarumLifeTime){
+    public function __construct(string $flarumUrl,string $rootDomain,string $flarumAPIKey,int $flarumDefaultUser, int $flarumLifeTime){
         $this->flarumUrl = $flarumUrl;
-        $this->iframeFlarumUrl = $iframeFlarumUrl;
-        $this->loginUrl = $loginUrl;
+        $this->flarumDefaultUser = $flarumDefaultUser;
         $this->rootDomain =$rootDomain;
         $this->flarumAPIKey = $flarumAPIKey;
         $this->flarumLifeTime = $flarumLifeTime;

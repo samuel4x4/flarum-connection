@@ -11,8 +11,9 @@ namespace FlarumConnection\Features;
 
 use FlarumConnection\Models\FlarumConnectorConfig;
 
+use FlarumConnection\Models\FlarumDiscussion;
 use FlarumConnection\Models\FlarumPost;
-use FlarumConnection\Models\FlarumTag;
+
 use Http\Promise\Promise;
 use Psr\Log\LoggerInterface;
 
@@ -41,19 +42,19 @@ class FlarumPostsManager extends AbstractFeature
 
     /**
      * Add a new Post
-     * @param int $discussionId     The discussion into which to append the post
-     * @param string $content       The content to be added
-     * @param bool $admin   Indicate if admin mode should be forced
+     * @param int $discussionId The discussion into which to append the post
+     * @param string $content The content to be added
+     * @param int|null $user
      * @return Promise        The promise of a post or an exception
-     * @throws \FlarumConnection\Exceptions\InvalidUserException Trigerred if no users are associated
      */
-    public function addPost(int $discussionId,string $content, bool $admin = false): Promise
+    public function addPost(int $discussionId,string $content,?int $user = null): Promise
     {
         $post = new FlarumPost();
         $post->init($content);
-        $post->discussionId = $discussionId;
+        $post->discussion = new FlarumDiscussion();
+        $post->discussion->postId=$discussionId;
 
-        return $this->insert($this->config->flarumUrl . self::API_POSTS, $post, 201, $admin);
+        return $this->insert($this->config->flarumUrl . self::API_POSTS, $post, 201, $user);
 
     }
 
@@ -61,45 +62,42 @@ class FlarumPostsManager extends AbstractFeature
      * Update a post
      * @param string $content
      * @param int $postId
-     * @param bool $admin Use admin mode or not
+     * @param int|null $user
      * @return Promise        A promise of a tag or of an exception
-     * @throws \FlarumConnection\Exceptions\InvalidUserException An exception is trigerred if no user is associated
      */
-    public function updatePost(string $content,int $postId, bool $admin = false): Promise
+    public function updatePost(string $content,int $postId,?int $user = null): Promise
     {
         $post = new FlarumPost();
         $post->init($content);
         $post->postId = $postId;
 
 
-        return $this->update($this->config->flarumUrl . self::API_POSTS . '/' . $postId, $post, 200, $admin);
+        return $this->update($this->config->flarumUrl . self::API_POSTS . '/' . $postId, $post, 200, $user);
     }
 
     /**
      * Return the list of groups
-     * @param int $discussionId     The id of the discussion associated
-     * @param bool $admin Use the current user or use admin
+     * @param int $discussionId The id of the discussion associated
+     * @param int|null $user
      * @return Promise        A list of group
-     * @throws \FlarumConnection\Exceptions\InvalidUserException If no users are associated
      */
-    public function getPosts(int $discussionId, bool $admin = false): Promise
+    public function getPosts(int $discussionId,?int $user = null): Promise
     {
-        return $this->getAll($this->getUriDiscussion($discussionId), new FlarumPost(), $admin);
+        return $this->getAll($this->getUriDiscussion($discussionId), new FlarumPost(), $user);
     }
 
     /**
      * Delete a post
-     * @param int $postId   The id of the post to delete
-     * @param bool $admin Use admin mode or not
+     * @param int $postId The id of the post to delete
+     * @param int|null $user
      * @return Promise
-     * @throws \FlarumConnection\Exceptions\InvalidUserException
      */
-    public function deletePost(int $postId, bool $admin = false): Promise{
+    public function deletePost(int $postId, ?int $user = null): Promise{
         return $this->delete(
             $this->config->flarumUrl . self::API_POSTS.'/'.$postId,
         new FlarumPost(),
         204,
-        $admin);
+        $user);
 
     }
 
@@ -108,7 +106,8 @@ class FlarumPostsManager extends AbstractFeature
      * @param int $discussionId The id of the discussion
      * @return string       The uri to be called
      */
-    private function getUriDiscussion(int $discussionId){
+    private function getUriDiscussion(int $discussionId): string
+    {
         $uri = $this->config->flarumUrl . self::API_POSTS . '?include=';
         $uri = $uri . '&' . urlencode('filter[discussion]') . '=' . urlencode($discussionId);
         return $uri;

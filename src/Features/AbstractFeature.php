@@ -9,7 +9,7 @@ use FlarumConnection\Exceptions\InvalidObjectException;
 use FlarumConnection\Exceptions\InvalidUpdateException;
 use FlarumConnection\Exceptions\InvalidUserException;
 
-use FlarumConnection\Models\FlarumPost;
+
 use \FlarumConnection\Models\FlarumToken;
 use \FlarumConnection\Models\FlarumConnectorConfig;
 use FlarumConnection\Models\AbstractModel;
@@ -48,12 +48,6 @@ abstract class AbstractFeature
      */
     protected $http;
 
-    /**
-     * The currently connected user
-     *
-     * @var \FlarumConnection\Models\FlarumToken
-     */
-    protected $token;
 
 
     /**
@@ -62,7 +56,7 @@ abstract class AbstractFeature
      * @param FlarumConnectorConfig $config Configuration for flarum connector
      * @param LoggerInterface $logger Logger interface
      */
-    protected function init(FlarumConnectorConfig $config, LoggerInterface $logger)
+    protected function init(FlarumConnectorConfig $config, LoggerInterface $logger): void
     {
         $this->config = $config;
         $this->logger = $logger;
@@ -74,13 +68,12 @@ abstract class AbstractFeature
      * @param string $uri The
      * @param AbstractModel $model
      * @param int $validResponseCode
-     * @param bool|null $admin
+     * @param int|null $user
      * @return \Http\Promise\Promise
-     * @throws InvalidUserException
      */
-    protected function insert(string $uri, AbstractModel $model, int $validResponseCode, ?bool $admin = false): \Http\Promise\Promise
+    protected function insert(string $uri, AbstractModel $model, int $validResponseCode, ?int $user = null): \Http\Promise\Promise
     {
-        return $this->alter($uri, 'INSERT', $model, $validResponseCode, $admin);
+        return $this->alter($uri, 'INSERT', $model, $validResponseCode, $user);
     }
 
     /**
@@ -88,13 +81,12 @@ abstract class AbstractFeature
      * @param string $uri The
      * @param AbstractModel $model
      * @param int $validResponseCode
-     * @param bool|null $admin
+     * @param int|null $user
      * @return \Http\Promise\Promise
-     * @throws InvalidUserException
      */
-    protected function update(string $uri, AbstractModel $model, int $validResponseCode, ?bool $admin = false): \Http\Promise\Promise
+    protected function update(string $uri, AbstractModel $model, int $validResponseCode, ?int $user = null): \Http\Promise\Promise
     {
-        return $this->alter($uri, 'UPDATE', $model, $validResponseCode, $admin);
+        return $this->alter($uri, 'UPDATE', $model, $validResponseCode, $user);
     }
 
 
@@ -104,11 +96,10 @@ abstract class AbstractFeature
      * @param string $method INSERT or UPDATE
      * @param AbstractModel $model he data model to insert, id must not be empty in order to updtate
      * @param int $validResponseCode The expected http response code
-     * @param bool|null $admin True if is admin
+     * @param int|null $user  The user who should call the API
      * @return \Http\Promise\Promise        A promise of a Rootmodel
-     * @throws InvalidUserException Trigerred if their is no connected user
      */
-    protected function alter(string $uri, string $method, AbstractModel $model, int $validResponseCode, ?bool $admin = false): \Http\Promise\Promise
+    protected function alter(string $uri, string $method, AbstractModel $model, int $validResponseCode, ?int $user = null): \Http\Promise\Promise
     {
 
         $verb = 'POST';
@@ -120,20 +111,6 @@ abstract class AbstractFeature
         $hydrator = $model->getHydrator();
         $serializer = $model->getSerializer();
 
-        $token = null;
-        if ($admin) {
-            $token = $this->config->flarumAPIKey;
-        }
-
-        //retrieve the current user
-        if ($token === null) {
-            //Retrieve current user
-            $token = $this->getToken()->token;
-            if ($token === false) {
-                throw new InvalidUserException('There is no currently defined user');
-            }
-        }
-
         //Create body
         if ($method === 'UPDATE') {
             $body = $serializer->getBodyUpdate($model);
@@ -144,38 +121,34 @@ abstract class AbstractFeature
 
 
         // Instantiate an empty PSR-7 request
-        $request = new Request("", "");
+        $request = new Request('', '');
 
         // Instantiate the request builder
         $requestBuilder = new JsonApiRequestBuilder($request);
 
         $requestBuilder
-            ->setProtocolVersion("1.1")
+            ->setProtocolVersion('1.1')
             ->setMethod($verb)
             ->setUri($uri)
-            ->setHeader("Accept-Charset", "utf-8")
-            ->setHeader('cookie', 'flarum_remember=' . $token)
+            ->setHeader('Accept-Charset', 'utf-8')
             ->setJsonApiBody($body);
 
-        if ($admin) {
-            $requestBuilder->setHeader('Authorization', 'Token ' . $this->config->flarumAPIKey . '; userId=1');
-        } else {
-            $requestBuilder->setHeader('Authorization', 'Token ' . $token . '');
-        }
+        //set the auth
+        $this->setAuth($requestBuilder,$user);
 
         $request = $requestBuilder->getRequest();
 
 
         $client = new JsonApiAsyncClient(Client::createWithConfig([]));
         return $client->sendAsyncRequest($request)->then(
-            function (Response $res) use ($hydrator, $objectName, $validResponseCode, $method,$request) {
+            function (Response $res) use ($hydrator, $objectName, $validResponseCode, $method) {
                 try {
                     $resp = new JsonApiResponse($res);
                     if ($resp->isSuccessful([$validResponseCode]) && $resp->isSuccessfulDocument()) {
                         return $hydrator->hydrate($resp->document());
                     }
                     $this->logger->error('Invalid response on ' . $objectName . ' ' . $method . ' ' . $res->getStatusCode() . ' returned\n');
-                    $this->logger->debug('Invalid response '. $res->getBody()->getContents());
+                    $this->logger->debug('Invalid response ' . $res->getBody()->getContents());
                     return new RejectedPromise(new InvalidObjectException('Error during ' . $objectName . ' ' . $method . ' '));
 
                 } catch (\Exception $e) {
@@ -195,55 +168,41 @@ abstract class AbstractFeature
      * Retrieve a list of items from Flarum
      * @param string $uri The URI of the WS
      * @param AbstractModel $model he data model to insert, id must not be empty in order to updtate
-     * @param bool|null $admin
+     * @param int|null $user
      * @return \Http\Promise\Promise        A promise of an array of models of an exception
-     * @throws InvalidUserException Trigerred if their is no connected user
      */
-    protected function getAll(string $uri, AbstractModel $model, ?bool $admin = false): \Http\Promise\Promise
+    protected function getAll(string $uri, AbstractModel $model,?int $user = null): \Http\Promise\Promise
     {
 
-        return $this->get($uri, $model, 'ALL', $admin);
+        return $this->get($uri, $model, 'ALL', $user);
     }
 
     /**
      * Return one object from Flarum
      * @param string $uri The URI of the WS
      * @param AbstractModel $model he data model to insert, id must not be empty in order to updtate
-     * @param bool|null $admin
+     * @param int|null $user
      * @return \Http\Promise\Promise        A promise of a model of an exception
-     * @throws InvalidUserException     Trigerred if their is no connected user
      */
-    protected function getOne(string $uri, AbstractModel $model, ?bool $admin = false)
+    protected function getOne(string $uri, AbstractModel $model, ?int $user = null): \Http\Promise\Promise
     {
-        return $this->get($uri, $model, 'ONE', $admin);
+        return $this->get($uri, $model, 'ONE', $user);
     }
 
 
     /**
-     * Retrieve a list or an objecy
+     * Retrieve a list or an object
      * @param string $uri The URI to request
      * @param AbstractModel $model The model to be used
      * @param string $mod ALL for a collection, ONE for an object
-     * @param bool|null $admin Should the request been made as admin
+     * @param int|null $user    The user to use for retrievam
      * @return \Http\Promise\Promise    A promise of a list, an object or an exception
-     * @throws InvalidUserException     Trigerred if their is no user associated
      */
-    private function get(string $uri, AbstractModel $model, string $mod, ?bool $admin = false): \Http\Promise\Promise
+    private function get(string $uri, AbstractModel $model, string $mod, ?int $user = null): \Http\Promise\Promise
     {
         $objectName = $model->getModelName();
         $hydrator = $model->getHydrator();
 
-        $token = null;
-        if ($admin) {
-            $token = $this->config->flarumAPIKey;
-        }
-        if ($token === null) {
-            //Retrieve current user
-            $token = $this->getToken()->token;
-            if ($token === false) {
-                throw new InvalidUserException('There is no currently defined user');
-            }
-        }
         // Instantiate an empty PSR-7 request
         $request = new Request('', '');
 
@@ -255,15 +214,10 @@ abstract class AbstractFeature
             ->setProtocolVersion('1.1')
             ->setMethod('GET')
             ->setUri($uri)
-            ->setHeader('Accept-Charset', 'utf-8')
-            ->setHeader('cookie', 'flarum_remember=' . $token);
+            ->setHeader('Accept-Charset', 'utf-8');
 
-
-        if ($admin) {
-            $requestBuilder->setHeader('Authorization', 'Token ' . $this->config->flarumAPIKey . '; userId=1');
-        } else {
-            $requestBuilder->setHeader('Authorization', 'Token ' . $token . '');
-        }
+        //Set the auth
+        $this->setAuth($requestBuilder,$user);
 
         $request = $requestBuilder->getRequest();
         $client = new JsonApiAsyncClient(Client::createWithConfig([]));
@@ -300,25 +254,15 @@ abstract class AbstractFeature
      * @param string $uri The URI of the WS
      * @param AbstractModel $model he data model to insert, id must not be empty in order to updtate
      * @param int $validResponseCode The right response code
-     * @param bool|null $admin
+     * @param int|null $user    The user that should call the WS
      * @return \Http\Promise\Promise        A promise of a
-     * @throws InvalidUserException Trigerred if their is no connected user
      */
-    protected function delete(string $uri, AbstractModel $model, int $validResponseCode, ?bool $admin = false): \Http\Promise\Promise
+    protected function delete(string $uri, AbstractModel $model, int $validResponseCode, ?int $user = null): \Http\Promise\Promise
     {
         $objectName = $model->getModelName();
 
-        $token = null;
-        if ($admin) {
-            $token = $this->config->flarumAPIKey;
-        }
-        if ($token === null) {
-            //Retrieve current user
-            $token = $this->getToken()->token;
-            if ($token === false) {
-                throw new InvalidUserException('There is no currently defined user');
-            }
-        }
+
+
         // Instantiate an empty PSR-7 request
         $request = new Request('', '');
 
@@ -330,14 +274,10 @@ abstract class AbstractFeature
             ->setProtocolVersion('1.1')
             ->setMethod('DELETE')
             ->setUri($uri)
-            ->setHeader('Accept-Charset', 'utf-8')
-            ->setHeader('cookie', 'flarum_remember=' . $token);
+            ->setHeader('Accept-Charset', 'utf-8');
 
-        if ($admin) {
-            $requestBuilder->setHeader('Authorization', 'Token ' . $this->config->flarumAPIKey . '; userId=1');
-        } else {
-            $requestBuilder->setHeader('Authorization', 'Token ' . $token . '');
-        }
+        $this->setAuth($requestBuilder,$user);
+
 
         $request = $requestBuilder->getRequest();
         $client = new JsonApiAsyncClient(Client::createWithConfig([]));
@@ -351,7 +291,7 @@ abstract class AbstractFeature
                     $this->logger->error('Invalid ' . $objectName . ' delete :' . $res->getStatusCode() . ' returned');
                     return new RejectedPromise(new InvalidDeleteException('Invalid result deleting ' . $objectName));
                 } catch (\Exception $e) {
-                    $this->logger->error('Exception trigerred on ' . $objectName . ' delete ' . $e->getMessage()  . ' returned');
+                    $this->logger->error('Exception trigerred on ' . $objectName . ' delete ' . $e->getMessage() . ' returned');
                     return new RejectedPromise(new InvalidDeleteException($e->getMessage()));
                 }
             },
@@ -378,28 +318,19 @@ abstract class AbstractFeature
         return new InvalidCreationException($message);
     }
 
+
     /**
-     * Securely get the token
-     *
-     * @return bool|FlarumToken
+     * Set the auth for Flarum request
+     * @param JsonApiRequestBuilder $requestBuilder The request builder
+     * @param int|null $userId The user id, if null take the default admin user
      */
-    public function getToken()
+    private function setAuth(JsonApiRequestBuilder $requestBuilder, ?int $userId = null): void
     {
-        if ($this->token === null || $this->token->userId === null || $this->token->token === null) {
-            return false;
+        if ($userId === null) {
+            $requestBuilder->setHeader('Authorization', 'Token ' . $this->config->flarumAPIKey . '; userId=' . $this->config->flarumDefaultUser);
+        } else {
+            $requestBuilder->setHeader('Authorization', 'Token ' . $this->config->flarumAPIKey . '; userId=' . $userId);
         }
-        return $this->token;
-    }
-
-
-    /**
-     * Set the currently connected user token
-     *
-     * @param FlarumToken $token The token of the currently connected user
-     * @return void
-     **/
-    public function setToken(FlarumToken $token)
-    {
-        $this->token = $token;
+        $requestBuilder->setHeader('cookie','flarum_remember='.$this->config->flarumAPIKey);
     }
 }

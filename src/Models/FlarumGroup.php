@@ -50,7 +50,8 @@ class FlarumGroup extends AbstractModel
      * @param string $nameSingular      The name of the group at the singular
      * @param string $namePlural        The name of the group at the plural
      */
-    public function init(string $nameSingular,string $namePlural){
+    public function init(string $nameSingular,string $namePlural): void
+    {
         $this->namePlural = $namePlural;
         $this->nameSingular = $nameSingular;
     }

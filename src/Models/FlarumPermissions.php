@@ -11,16 +11,16 @@ namespace FlarumConnection\Models;
 
 class FlarumPermissions
 {
-    const READ_RIGHTS = ['viewDiscussions'];
+     public const READ_RIGHTS = ['viewDiscussions'];
 
-    const CREATE_RIGHTS = ['startDiscussion'];
+     public const CREATE_RIGHTS = ['startDiscussion'];
 
-    const RESPOND_RIGHTS = ['discussion.reply',
+     public const RESPOND_RIGHTS = ['discussion.reply',
         'discussion.replyWithoutApproval',
         'discussion.likePosts'
     ];
 
-    const MODERATE_RIGHTS = ['discussion.rename',
+     public const MODERATE_RIGHTS = ['discussion.rename',
         'discussion.lock',
         'discussion.sticky',
         'discussion.tag',
@@ -60,7 +60,8 @@ class FlarumPermissions
      * Set the groups for read
      * @param array $groups
      */
-    public function setRead(array $groups){
+    public function setRead(array $groups): void
+    {
         $this->allowedRead = $groups;
     }
 
@@ -68,7 +69,8 @@ class FlarumPermissions
      * Set the groups for create
      * @param array $groups
      */
-    public function setCreate(array $groups){
+    public function setCreate(array $groups): void
+    {
         $this->allowedCreate = $groups;
     }
 
@@ -76,14 +78,16 @@ class FlarumPermissions
      * Set the groups to respond
      * @param array $groups
      */
-    public function setRespond(array $groups){
+    public function setRespond(array $groups): void
+    {
         $this->allowedRespond = $groups;
     }
     /**
      * Set the groups to moderate
      * @param array $groups
      */
-    public function setModerate(array $groups){
+    public function setModerate(array $groups): void
+    {
         $this->allowedModerate = $groups;
     }
 
@@ -91,7 +95,8 @@ class FlarumPermissions
      * Get the permission setup for a tag
      * @return array
      */
-    public function getPermissionSetup(){
+    public function getPermissionSetup(): array
+    {
         $output = [];
         $readGroups = array_merge($this->allowedCreate,$this->allowedRespond,$this->allowedModerate,$this->allowedRead);
         $output['VIEW'] =$this->setOutputForCategory(self::READ_RIGHTS,$readGroups);
@@ -115,7 +120,8 @@ class FlarumPermissions
      * @param array $groups           Groupŝ to associate
      * @return array            The associated array returned
      */
-    private function setOutputForCategory(array $arrayPermissions,array $groups){
+    private function setOutputForCategory(array $arrayPermissions,array $groups): array
+    {
         $ret = [];
         foreach($arrayPermissions as $permission){
             $el = [];

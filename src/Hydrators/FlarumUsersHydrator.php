@@ -14,8 +14,8 @@ class FlarumUsersHydrator extends AbstractHydrator
     public function hydrate(Document $document): FlarumUser
     {
         $hydrated = parent::hydrateObject($document);
-        $user = $this->createUser($hydrated);
-        return $user;
+        return  $this->createUser($hydrated);
+
     }
 
     /**

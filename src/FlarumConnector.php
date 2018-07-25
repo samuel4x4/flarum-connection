@@ -1,4 +1,5 @@
 <?php
+
 namespace FlarumConnection;
 
 require '../vendor/autoload.php';
@@ -14,16 +15,20 @@ use FlarumConnection\Models\FlarumConnectorConfig;
 use FlarumConnection\Models\FlarumToken;
 use FlarumConnection\Features\FlarumSSO;
 use FlarumConnection\Features\FlarumUserManagement;
+use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Connector class for Flarum
  */
-class FlarumConnector{
+class FlarumConnector
+{
 
     /**
      * Name of the flarum cookie
      */
-    const FLARUM_COOKIE = 'flarum_remember';
+    public const FLARUM_COOKIE = 'flarum_remember';
 
     /**
      * Configuration for Flarum
@@ -52,12 +57,6 @@ class FlarumConnector{
      */
     private $flarumUserManagement;
 
-    /**
-     * IFeatureListenner listenners
-     *
-     * @var array
-     */
-    private $listenners;
 
     /**
      * Flarum discussion feature
@@ -86,23 +85,20 @@ class FlarumConnector{
     /**
      * Initialize the service
      *
-     * @param FlarumConnectorConfig $config  The configuration for the service
-     * @param LoggerInterface       $logger  PSR-3 Logger interface
-     * @param FlarumToken|null      $token   The user (if the user is connected)
+     * @param FlarumConnectorConfig $config The configuration for the service
+     * @param LoggerInterface $logger PSR-3 Logger interface
      */
-    public function __construct(FlarumConnectorConfig $config, LoggerInterface $logger, ?FlarumToken $token = null){
+    public function __construct(FlarumConnectorConfig $config, LoggerInterface $logger)
+    {
         $this->config = $config;
         $this->logger = $logger;
-        $this->flarumSSO = new FlarumSSO( $config,  $logger);
-        $this->flarumUserManagement = new FlarumUserManagement($config,  $logger);
-        $this->flarumDiscussionManagement = new FlarumDiscussionsManager($config,$logger);
-        $this->flarumTagManagement = new FlarumTagsManager($config,$logger);
-        $this->flarumGroupManagement = new FlarumGroupsManager($config,$logger);
-        $this->flarumPostManagement = new FlarumPostsManager($config,$logger);
-        $this->listenners = [$this->flarumSSO, $this->flarumUserManagement, $this->flarumDiscussionManagement,$this->flarumTagManagement,$this->flarumGroupManagement,$this->flarumPostManagement];
-        if($token !== null){
-            $this->setToken($token);
-        }
+        $this->flarumSSO = new FlarumSSO($config, $logger);
+        $this->flarumUserManagement = new FlarumUserManagement($config, $logger);
+        $this->flarumDiscussionManagement = new FlarumDiscussionsManager($config, $logger);
+        $this->flarumTagManagement = new FlarumTagsManager($config, $logger);
+        $this->flarumGroupManagement = new FlarumGroupsManager($config, $logger);
+        $this->flarumPostManagement = new FlarumPostsManager($config, $logger);
+
     }
 
     /**
@@ -110,7 +106,8 @@ class FlarumConnector{
      *
      * @return FlarumSSO    The initialized SSO feature
      */
-    public function getSSO():FlarumSSO{
+    public function getSSO(): FlarumSSO
+    {
         return $this->flarumSSO;
     }
 
@@ -119,7 +116,8 @@ class FlarumConnector{
      *
      * @return FlarumUserManagement   The user management feature
      */
-    public function getUserManagement():FlarumUserManagement{
+    public function getUserManagement(): FlarumUserManagement
+    {
         return $this->flarumUserManagement;
     }
 
@@ -127,7 +125,8 @@ class FlarumConnector{
      * Get the discussion management feature
      * @return FlarumDiscussionsManager  The discussion management feature
      */
-    public function getDiscussionManagement():FlarumDiscussionsManager{
+    public function getDiscussionManagement(): FlarumDiscussionsManager
+    {
         return $this->flarumDiscussionManagement;
     }
 
@@ -135,15 +134,17 @@ class FlarumConnector{
      * Get the tags feature
      * @return FlarumTagsManager  The discussion management feature
      */
-    public function getTagsManagement():FlarumTagsManager{
+    public function getTagsManagement(): FlarumTagsManager
+    {
         return $this->flarumTagManagement;
     }
 
     /**
      * Get the groups feature
-     * @return FlarumTagsManager  The groups feature
+     * @return FlarumGroupsManager  The groups feature
      */
-    public function getGroupsManagement():FlarumGroupsManager{
+    public function getGroupsManagement(): FlarumGroupsManager
+    {
         return $this->flarumGroupManagement;
     }
 
@@ -151,10 +152,10 @@ class FlarumConnector{
      * Get the posts feature
      * @return FlarumPostsManager  The groups feature
      */
-    public function getPostsManagement():FlarumPostsManager{
+    public function getPostsManagement(): FlarumPostsManager
+    {
         return $this->flarumPostManagement;
     }
-
 
 
     /**
@@ -162,7 +163,8 @@ class FlarumConnector{
      *
      * @return FlarumConnectorConfig    Return the current config
      */
-    public function getConfig():FlarumConnectorConfig{
+    public function getConfig(): FlarumConnectorConfig
+    {
         return $this->config;
     }
 
@@ -170,67 +172,58 @@ class FlarumConnector{
     /**
      * Realize a login operation asynchronously
      *
-     * @param string  $login
-     * @param string  $password
-     * @param boolean $setCookie    Set the cookie directly if true
-     * @return \GuzzleHttp\Promise\promiseinterface               A token or false if the login operation is a failure
+     * @param string $login
+     * @param string $password
+     * @return \GuzzleHttp\Promise\promiseinterface               A promise of an http foundation cookie
      */
-    public function login(string $login,string $password,bool $setCookie):\GuzzleHttp\Promise\promiseinterface{
-        $res = $this->flarumSSO->login($login,$password);
-        return $res->then(function ($res) use ($setCookie){
-            if($setCookie && !($res instanceof \Exception)){
-                setcookie(self::FLARUM_COOKIE, $res->token, time()+$this->config->flarumLifeTime * 60 * 60 * 24, '/', $this->config->rootDomain);
-            }
-            if($res instanceof \Exception){
-                $this->logger->debug('Error while login :'.$res->getMessage());
-            }  else{
-                $this->setToken($res);
-            }
-            return $res;
-        }, function (\Exception $e){
-            $this->logger->debug('Error while login :'.$e->getMessage());
+    public function login(string $login, string $password): \GuzzleHttp\Promise\promiseinterface
+    {
+        $res = $this->flarumSSO->login($login, $password);
+        return $res->then(function ($res) {
+
+            $now = new \DateTime();
+            $newDate = $now->add(new \DateInterval('P' . $this->config->flarumLifeTime . 'd'));
+            return new Cookie(
+                self::FLARUM_COOKIE,
+                $res->token,
+                $newDate,
+                '/',
+                $this->config->rootDomain
+            );
+
+
+        }, function (\Exception $e) {
+            $this->logger->debug('Error while login :' . $e->getMessage());
             return $e;
         });
 
     }
 
     /**
-     * Create a user
-     *
-     * @param string $login The login from the user
-     * @param string $password The password from the user
-     * @param string $email The email to set as user email
-     * @return \GuzzleHttp\Promise\promiseinterface               A token or false if the login operation is a failure
-     * @throws Exceptions\InvalidUserException
+     * Check if the user is connected
+     * @param Request $request The source http request
+     * @param bool $doubleCheck Check through API if true
+     * @return bool True if the user is connected
      */
-     public function signup(string $login,string $password,string $email):\GuzzleHttp\Promise\promiseinterface{
-        $res =  $this->flarumSSO->signup($login,$password,$email)->wait();
-        if($res instanceof \Exception){
-            $this->logger->debug('Error while signup :'.$res->getMessage());
-        } 
-        return $res;
-    }
-
-    /**
-     * Logout from the forum
-     *
-     * @return void
-     */
-    public function logout(){
-        $this->setToken();
-        unset($_COOKIE[self::FLARUM_COOKIE]);
-        setcookie(self::FLARUM_COOKIE, '', time() - 10, '/', $this->config->rootDomain);
-    }
-
-    /**
-     * Set the user on all the features
-     *
-     * @param FlarumToken|null $token  The user to set
-     * @return void
-     */
-    private function setToken(FlarumToken $token = null){
-        foreach($this->listenners as $feature){
-            $feature->setToken($token);
+    public function isConnected(Request $request, bool $doubleCheck): bool
+    {
+        $hasCookie = $request->cookies->has(self::FLARUM_COOKIE);
+        if (!$doubleCheck || $hasCookie === false) {
+            return $hasCookie;
         }
+        return $this->flarumSSO->isUserConnected($request->cookies->get(self::FLARUM_COOKIE))->wait();
     }
+
+
+    /**
+     * Update a response object to clear the flarum cookie
+     *
+     * @param Response $resp The httpfoundation response object
+     * @return void
+     */
+    public function logout(Response $resp): void
+    {
+        $resp->headers->clearCookie(self::FLARUM_COOKIE);
+    }
+
 }

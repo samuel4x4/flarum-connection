@@ -22,7 +22,7 @@ class FlarumGroupsHydrator extends AbstractHydrator
     /**
      * Hydrate a Flarum Group
      * @param Document $document
-     * @return FlarumTag    The returned group
+     * @return FlarumGroup The returned group
      */
     public function hydrate(Document $document): FlarumGroup
     {

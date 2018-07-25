@@ -19,7 +19,12 @@ trait TestRoot{
     protected function createInstance(){
         if($this->fConnector === null){
             $logger = new EchoLogger(\Psr\Log\LogLevel::DEBUG);
-            $config = new \FlarumConnection\Models\FlarumConnectorConfig ('http://flarum.laborange.net','https://laborange.net/home.php','https://laborange.net/','NotSecureToken','NotSecureToken',3000);
+            $config = new \FlarumConnection\Models\FlarumConnectorConfig (
+                'http://flarum.laborange.net',
+                'https://laborange.net/home.php',
+                'NotSecureToken',
+                1,
+                3000);
             $this->fConnector = new FlarumConnector($config,$logger,null);
         }
 
@@ -55,7 +60,7 @@ trait TestRoot{
      * @throws \Exception
      */
     protected function login(string $user, string $pass){
-        $result = $this->fConnector->login($user,$pass,false);
+        $result = $this->fConnector->getSSO()->login($user,$pass);
         if($result instanceof \FlarumConnection\Models\FlarumToken){
             return $result;
         } else if($result instanceof \Exception) {
@@ -76,7 +81,7 @@ trait TestRoot{
         $pass = 'tata2tata';
         $result = $this->fConnector->getSSO()->signup($user,$pass,$mail)->wait();
         if($result instanceof FlarumUser){
-            $result = $this->fConnector->login($user,$pass,false)->wait();
+            $result = $this->fConnector->getSSO()->login($user,$pass,false)->wait();
             if($result instanceof \FlarumConnection\Models\FlarumToken){
                 return $result;
             }

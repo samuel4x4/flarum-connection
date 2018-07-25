@@ -21,7 +21,7 @@ class FlarumDiscussionsManager extends AbstractFeature
     /**
      * Path for Discussions
      */
-    const DISCUSSIONS_PATH = '/api/discussions';
+    public const DISCUSSIONS_PATH = '/api/discussions';
 
     /**
      * Initialize the feature with the config
@@ -40,16 +40,15 @@ class FlarumDiscussionsManager extends AbstractFeature
      * @param string $title Title of the topic
      * @param string $content Content of the topic
      * @param array $tags Tags associated (array of int)
-     * @param bool $admin
-     * @return \Http\Promise\Promise
-     * @throws InvalidUserException When the user is not logged in
+     * @param int|null $user    The user that will call the API
+     * @return \Http\Promise\Promise    A topic
      */
-    public function postTopic(string $title, string $content, array $tags,bool $admin = false): \Http\Promise\Promise
+    public function postTopic(string $title, string $content, array $tags,int $user = null): \Http\Promise\Promise
     {
         $disc = new FlarumDiscussion();
         $disc->init($title, $content, $tags);
 
-        return $this->insert($this->config->flarumUrl . self::DISCUSSIONS_PATH ,$disc,201,$admin);
+        return $this->insert($this->config->flarumUrl . self::DISCUSSIONS_PATH ,$disc,201,$user);
     }
 
     /**
@@ -58,14 +57,14 @@ class FlarumDiscussionsManager extends AbstractFeature
      * @param string $title The title of the topic
      * @param string $content The content of the topic
      * @param array $tags Tags to set
+     * @param int|null $user
      * @return \Http\Promise\Promise
-     * @throws InvalidUserException     Trigerred if the user is not connected
      */
-    public function updateTopic(int $id, string $title, string $content, array $tags,bool $admin = false): \Http\Promise\Promise
+    public function updateTopic(int $id, string $title, string $content, array $tags,?int $user = null): \Http\Promise\Promise
     {
         $disc = new FlarumDiscussion();
         $disc->init($title, $content, $tags);
-        return $this->update($this->config->flarumUrl . self::DISCUSSIONS_PATH . '/' . $id,$disc,200,$admin);
+        return $this->update($this->config->flarumUrl . self::DISCUSSIONS_PATH . '/' . $id,$disc,200,$user);
 
     }
 
@@ -73,14 +72,13 @@ class FlarumDiscussionsManager extends AbstractFeature
      * return a list of discussions
      * @param string $tag
      * @param int $offset
-     * @param bool|null $admin
+     * @param int|null $user
      * @return \Http\Promise\Promise
-     * @throws InvalidUserException
      */
-    public function getDiscussions(string $tag, int $offset = 0,?bool $admin = false)
+    public function getDiscussions(string $tag, int $offset = 0,?int $user = null): \Http\Promise\Promise
     {
 
-        return $this->getAll($this->getUri($tag, $offset), new FlarumDiscussion(), $admin);
+        return $this->getAll($this->getUri($tag, $offset), new FlarumDiscussion(), $user);
     }
 
 
@@ -90,11 +88,11 @@ class FlarumDiscussionsManager extends AbstractFeature
      * @param int $offset
      * @return string
      */
-    private function getUri(?string $tag, int $offset = 0)
+    private function getUri(?string $tag, int $offset = 0): string
     {
         $uri = $this->config->flarumUrl . self::DISCUSSIONS_PATH . '?include=' . urlencode('startUser,lastUser,startPost,tags');
         if ($tag === null) {
-            $uri = $uri . '&tags&&';
+            $uri .= '&tags&&';
         } else {
             $uri = $uri . '&' . urlencode('filter[q]') . '=' . urlencode('tag' . ':' . $tag);
         }

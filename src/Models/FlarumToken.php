@@ -73,9 +73,8 @@ class FlarumToken extends AbstractModel
     /**
      * Create a token from JSON output
      *
-     * @param object $json The JSON array from API
+     * @param \stdClass $json The JSON array from API
      * @return \FlarumConnection\Models\FlarumToken     A flarum token
-     * @throws InvalidTokenException When the feedback from the API is not good return an Invalid Token Exception
      */
     public static function fromToken(\stdClass $json): FlarumToken
     {

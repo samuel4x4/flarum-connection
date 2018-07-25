@@ -21,7 +21,7 @@ class FlarumUsersSerializer extends AbstractSerializer
 
     /**
      * Provide the json body for an update
-     * @param \stdClass $instance     The instance of the model
+     * @param object $instance     The instance of the model
      * @return array        The body as array
      */
     public function getBodyUpdate($instance): array
@@ -30,7 +30,8 @@ class FlarumUsersSerializer extends AbstractSerializer
             if($instance->groups !== null){
                 return $this->getBodyAddToGroup($instance);
             }
-            else if ($instance->password !== null) {
+
+            if ($instance->password !== null) {
                 return [
                     'data' => [
                         'type' => 'users',
@@ -41,7 +42,9 @@ class FlarumUsersSerializer extends AbstractSerializer
                         ],
                     ],
                 ];
-            } else if ($instance->email !== null) {
+            }
+
+            if ($instance->email !== null) {
                 return [
                     'data' => [
                         'type' => 'users',
@@ -53,6 +56,7 @@ class FlarumUsersSerializer extends AbstractSerializer
                     ],
                 ];
             }
+
             return [
                 'data' => [
                     'type' => 'users',
@@ -70,10 +74,11 @@ class FlarumUsersSerializer extends AbstractSerializer
 
     /**
      * Get body to add to a group
-     * @param $instance The flarum user instance
+     * @param $instance     The flarum user instance
      * @return array    The body
      */
-    public function getBodyAddToGroup($instance){
+    public function getBodyAddToGroup($instance): array
+    {
         if($instance instanceof FlarumUser) {
             $groups = [];
             foreach ($instance->groups as $group){

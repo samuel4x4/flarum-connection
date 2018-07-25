@@ -31,10 +31,7 @@ class FlarumTokenHydrator extends AbstractHydrator
      */
     public function hydrateCollection(Document $document): iterable
     {
-        $list = parent::hydrateCollection($document);
-        $ret = [];
-
-        return $ret;
+        return parent::hydrateCollection($document);
     }
 
 

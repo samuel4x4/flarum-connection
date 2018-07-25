@@ -27,23 +27,5 @@ class AbstractHydrator extends ClassHydrator
         return $default;
     }
 
-    /**
-     * Hydrate a document to a std class
-     * @param Document $document
-     * @return \stdClass
-     */
-    public function hydrateObject(Document $document):\stdClass
-    {
-        return parent::hydrateObject($document);
-    }
-
-    /**
-     * Hydrate a collection document to a list of stdclass
-     * @param Document $document
-     * @return iterable
-     */
-    public function hydrateCollection(Document $document): iterable{
-        return parent::hydrateCollection($document);
-    }
 
 }

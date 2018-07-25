@@ -104,7 +104,8 @@ class FlarumDiscussion extends AbstractModel
      * @param array $tags Tags of the post
      * @param int|null $id
      */
-    public function init(string $title,string $content,array $tags,?int $id = null){
+    public function init(string $title,string $content,array $tags,?int $id = null): void
+    {
         $this->title = $title;
         $this->content = $content;
         $this->tags = $tags;

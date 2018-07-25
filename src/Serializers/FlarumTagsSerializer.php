@@ -19,7 +19,8 @@ class FlarumTagsSerializer extends AbstractSerializer
 {
     /**
      * Get the body for the creation of a tag
-     * @return array
+     * @param $tag      The object to serialize
+     * @return array    The serialized body
      */
     public function getBodyInsert($tag): array
     {
@@ -40,12 +41,13 @@ class FlarumTagsSerializer extends AbstractSerializer
                 ]
             ];
         }
-
+        return [];
     }
 
     /**
      * Get the body for the update of a tag
-     * @return array
+     * @param $tag      The object to serialize
+     * @return array    The serialized body
      */
     public function getBodyUpdate($tag): array
     {
@@ -76,14 +78,16 @@ class FlarumTagsSerializer extends AbstractSerializer
      * @param string $permission The permission to set
      * @return array        The json body as array
      */
-    public function getBodyPermission(int $idTag,array $groups, string $permission){
+    public function getBodyPermission(int $idTag,array $groups, string $permission): array
+    {
         return [
             'groupIds' => $groups,
             'permission' => 'tag'.$idTag.'.'.$permission
         ];
     }
 
-    public function getBodyRestricted($tagId,$restricted){
+    public function getBodyRestricted($tagId,$restricted): array
+    {
         return [
             'data' => [
                 'type' => 'tags',

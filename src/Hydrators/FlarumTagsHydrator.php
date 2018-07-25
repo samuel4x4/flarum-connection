@@ -50,7 +50,7 @@ class FlarumTagsHydrator extends AbstractHydrator
      * @param $hydrated
      * @return FlarumTag
      */
-    private function createTag(\stdClass $hydrated): ?FlarumTag
+    private function createTag(?\stdClass $hydrated): ?FlarumTag
     {
         if($hydrated === null){
             return null;
@@ -65,6 +65,9 @@ class FlarumTagsHydrator extends AbstractHydrator
             $this->getRessource($hydrated, 'isRestricted', false),
             $this->getRessource($hydrated, 'id', null)
         );
+        $tag->parent = $this->createTag($this->getRessource($hydrated, 'parent', null));
+        $tag->position =$this->getRessource($hydrated, 'position', 0);
+        $tag->discussions_count = $this->getRessource($hydrated, 'discussion_count', 0);
         return $tag;
 
 

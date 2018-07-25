@@ -23,9 +23,9 @@ final class DiscussionsTest extends TestCase
     public function testCreate()
     {
         $this->createInstance();
-        $this->createAndLogin();
+        //$this->createAndLogin();
 
-        $res = $this->fConnector->getDiscussionManagement()->postTopic('Hello title', 'My content', [1],true)->wait();
+        $res = $this->fConnector->getDiscussionManagement()->postTopic('Hello title', 'My content', [376],null)->wait();
         $this->assertInstanceOf(FlarumDiscussion::class,$res);
         $this->assertEquals('Hello title',$res->title);
 
@@ -41,12 +41,12 @@ final class DiscussionsTest extends TestCase
         $this->createInstance();
         $this->createAndLogin();
 
-        $res = $this->fConnector->getDiscussionManagement()->postTopic('Hello title', 'My content', [1],true)->wait();
+        $res = $this->fConnector->getDiscussionManagement()->postTopic('Hello title', 'My content', [376],null)->wait();
 
         $this->assertInstanceOf( FlarumDiscussion::class,$res);
         $this->assertNotEmpty($res->id);
 
-        $res2 = $this->fConnector->getDiscussionManagement()->updateTopic($res->id,'Hello title3', 'My content2', [1],true)->wait();
+        $res2 = $this->fConnector->getDiscussionManagement()->updateTopic($res->id,'Hello title3', 'My content2', [376],null)->wait();
         $this->assertInstanceOf(FlarumDiscussion::class,$res2) ;
         $this->assertEquals('Hello title3',$res2->title);
 

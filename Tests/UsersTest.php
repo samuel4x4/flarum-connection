@@ -5,6 +5,7 @@ namespace FlarumConnection\Tests;
 require '../vendor/autoload.php';
 require_once 'Helpers/TestRoot.php';
 
+use Exception;
 use \PHPUnit\Framework\TestCase;
 
 
@@ -24,7 +25,7 @@ final class UsersTest extends TestCase
     {
         $this->createInstance();
         try {
-            $token = $this->fConnector->login('admin', 'sunlight', false)->wait();
+            $token = $this->fConnector->getSSO()->login('admin', 'sunlight')->wait();
             $this->assertEquals(
                 $token->userId,
                 1
@@ -45,6 +46,7 @@ final class UsersTest extends TestCase
      * Test the creation of a user (and login afterward)
      *
      * @return void
+     * @throws Exception
      */
     public function testUserCreation(): void
     {
@@ -53,7 +55,7 @@ final class UsersTest extends TestCase
         $mail = $user . '@laborange.fr';
         $pass = $user;
         $result = $this->fConnector->getSSO()->signup($user, $pass, $mail)->wait();
-        $this->assertNotInstanceOf(\Exception::class, $result);
+        $this->assertNotInstanceOf(Exception::class, $result);
 
         $this->assertEquals(
             $result->username,
@@ -64,8 +66,8 @@ final class UsersTest extends TestCase
             $result->email,
             $mail
         );
-        $token = $this->fConnector->login($user, $pass, false)->wait();
-        $this->assertNotInstanceOf(\Exception::class, $token);
+        $token = $this->fConnector->getSSO()->login($user, $pass)->wait();
+        $this->assertNotInstanceOf(Exception::class, $token);
         $this->assertNotEquals(
             $token,
             false
@@ -75,6 +77,7 @@ final class UsersTest extends TestCase
 
     /**
      * Test the deletion of a user
+     * @throws Exception
      */
     public function testUserDeletion(): void
     {
@@ -83,14 +86,14 @@ final class UsersTest extends TestCase
         $mail = $user . '@laborange.fr';
         $pass = $user;
         $result = $this->fConnector->getSSO()->signup($user, $pass, $mail)->wait();
-        $this->assertNotInstanceOf(\Exception::class, $result);
+        $this->assertNotInstanceOf(Exception::class, $result);
         $this->assertEquals(
             $result->username,
             $user
         );
 
-        $result2 = $this->fConnector->login($user, $pass, false)->wait();
-        $this->assertNotInstanceOf(\Exception::class, $result2);
+        $result2 = $this->fConnector->getSSO()->login($user, $pass, false)->wait();
+        $this->assertNotInstanceOf(Exception::class, $result2);
 
         $this->assertNotEmpty($result2->userId);
 
@@ -118,7 +121,7 @@ final class UsersTest extends TestCase
             $user
         );
 
-        $result2 = $this->fConnector->login($user, $pass, false)->wait();
+        $result2 = $this->fConnector->getSSO()->login($user, $pass, false)->wait();
 
         $this->assertNotEmpty($result2->userId);
 
@@ -141,7 +144,7 @@ final class UsersTest extends TestCase
     /**
      * Test the update of a user
      * @throws \FlarumConnection\Exceptions\InvalidUserException
-     * @throws \Exception
+     * @throws Exception
      */
     public function testUserUpdate(): void
     {
@@ -156,63 +159,65 @@ final class UsersTest extends TestCase
             $user
         );
 
-        $result2 = $this->fConnector->login($user, $pass, false)->wait();
+        $result2 = $this->fConnector->getSSO()->login($user, $pass, false)->wait();
 
         $this->assertNotEmpty($result2->userId);
 
-        $result3 = $this->fConnector->getUserManagement()->updateEmail($user . '@laborange2.fr', $user, $result2->userId,true)->wait();
-        $this->assertNotInstanceOf(\Exception::class, $result3);
+        $result3 = $this->fConnector->getUserManagement()->updateEmail($user . '@laborange2.fr', $user, $result2->userId,null)->wait();
+        $this->assertNotInstanceOf(Exception::class, $result3);
         $result4 = $this->fConnector->getUserManagement()->getUser($result2->userId)->wait();
-        $this->assertNotInstanceOf(\Exception::class, $result4);
+        $this->assertNotInstanceOf(Exception::class, $result4);
         $this->assertEquals(
             $result4->email,
             $user . '@laborange2.fr'
         );
 
-        $result5 = $this->fConnector->getUserManagement()->updatePassword('totototo', $user, $result2->userId,true)->wait();
-        $this->assertNotInstanceOf(\Exception::class, $result5);
+        $result5 = $this->fConnector->getUserManagement()->updatePassword('totototo', $user, $result2->userId,null)->wait();
+        $this->assertNotInstanceOf(Exception::class, $result5);
         $this->assertEquals(
             $result4->email,
             $user . '@laborange2.fr'
         );
         $result6 = $this->fConnector->getSSO()->login($user, 'totototo')->wait();
-        $this->assertNotInstanceOf(\Exception::class, $result6);
+        $this->assertNotInstanceOf(Exception::class, $result6);
 
 
     }
 
     /**
      * Test the search by user name
-     * @throws \Exception
+     * @throws Exception
      */
     public function testSearchByUserName(): void
     {
         $this->createInstance();
-        //$result3=  $this->fConnector->getUserManagement()->getUserByUserName('admin',true)->wait();
-        //$this->assertTrue($result3->userId === 1 && $result3->username === 'admin', 'Assert that search on user works');
+        $result3=  $this->fConnector->getUserManagement()->getUserByUserName('admin',null)->wait();
+        $this->assertTrue($result3->userId === 1 && $result3->username === 'admin', 'Assert that search on user works');
     }
 
 
     /**
      * Test admin retrieval
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testAdminGet(){
+    public function testAdminGet(): void
+    {
         $this->createInstance();
-        $res = $this->fConnector->getUserManagement()->getUser(1,true)->wait();
+        $res = $this->fConnector->getUserManagement()->getUser(1,null)->wait();
         $this->assertEquals($res->username, 'admin', 'Test admin retrieval');
     }
 
     /**
      * test the assignation of a user to a group
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testGroupAddAndDelete(){
+    public function testGroupAddAndDelete(): void
+    {
         $this->createInstance();
         $nameTag = uniqid('', false);
-        $res = $this->fConnector->getGroupsManagement()->addGroup('GroupAddTest_'.$nameTag,$nameTag.'s','#fgae26','bolt',true)->wait();
+        $res = $this->fConnector->getGroupsManagement()->addGroup('GroupAddTest_'.$nameTag,$nameTag.'s','#fgae26','bolt',null)->wait();
 
-        $res2 = $this->fConnector->getUserManagement()->addToGroup(1,$res->groupId,true)->wait();
+        $res2 = $this->fConnector->getUserManagement()->addToGroup(1,$res->groupId,null)->wait();
         $found = false;
 
         foreach($res2->groups as $group){
@@ -221,7 +226,7 @@ final class UsersTest extends TestCase
             }
         }
         $this->assertTrue($found,'Test to add a new group to a user');
-        $res3 = $this->fConnector->getUserManagement()->removeFromGroup(1,$res->groupId,true)->wait();
+        $res3 = $this->fConnector->getUserManagement()->removeFromGroup(1,$res->groupId,null)->wait();
         $found = false;
 
         foreach($res3->groups as $group){

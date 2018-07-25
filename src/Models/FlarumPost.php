@@ -1,6 +1,6 @@
 <?php
 namespace FlarumConnection\Models;
-use FlarumConnection\Exceptions\InvalidTagException;
+
 use FlarumConnection\Hydrators\AbstractHydrator;
 use FlarumConnection\Hydrators\FlarumPostsHydrator;
 
@@ -121,7 +121,8 @@ class FlarumPost extends AbstractModel
      * @param string $content       The html post
      * @param int|null $id The id of the tag
      */
-    public function init(string $content,  ?int $id = null){
+    public function init(string $content,  ?int $id = null): void
+    {
         $this->content = $content;
         $this->postId = $id;
     }

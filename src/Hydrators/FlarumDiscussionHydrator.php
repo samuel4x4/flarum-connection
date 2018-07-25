@@ -3,7 +3,7 @@
 namespace FlarumConnection\Hydrators;
 
 use FlarumConnection\Models\FlarumDiscussion;
-use FlarumConnection\Models\FlarumUser;
+
 use WoohooLabs\Yang\JsonApi\Schema\Document;
 
 

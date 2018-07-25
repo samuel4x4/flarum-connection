@@ -18,7 +18,8 @@ class FlarumTokenSerializer extends AbstractSerializer
 {
     /**
      * Get the body for the creation of a tag
-     * @return array
+     * @param $token    The token to serialize
+     * @return array    The serialized object
      */
     public function getBodyInsert($token): array
     {
@@ -27,8 +28,9 @@ class FlarumTokenSerializer extends AbstractSerializer
     }
 
     /**
-     * Get the body for the update of a tag
-     * @return array
+     * Get the body for the creation of a tag
+     * @param $token    The token to serialize
+     * @return array    The serialized object
      */
     public function getBodyUpdate($token): array
     {

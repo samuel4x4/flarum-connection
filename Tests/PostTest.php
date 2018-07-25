@@ -32,8 +32,8 @@ final class PostTest extends TestCase
         $content = uniqid('', false);
 
         //Admin creation test
-        $res0 = $this->fConnector->getDiscussionManagement()->postTopic("test post","test content",[1],true)->wait();
-        $res = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,true)->wait();
+        $res0 = $this->fConnector->getDiscussionManagement()->postTopic("test post","test content",[376],null)->wait();
+        $res = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,null)->wait();
         $this->assertTrue($res->content === $content && isset($res->postId),'Test insert of a post as admin '.$res->content);
 
 
@@ -54,8 +54,8 @@ final class PostTest extends TestCase
         $content = uniqid('', false);
 
         //Create a topic
-        $res0 = $this->fConnector->getDiscussionManagement()->postTopic("test post","test content",[1])->wait();
-        $res = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,true)->wait();
+        $res0 = $this->fConnector->getDiscussionManagement()->postTopic("test post","test content",[376])->wait();
+        $res = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,null)->wait();
 
 
         //Update a topic as a user
@@ -63,7 +63,7 @@ final class PostTest extends TestCase
         //$this->assertTrue($res2->content === $content.'s2' && isset($res2->postId),'Test  update of a post as user'.$res2->content);
 
         //Update a topic as an admin
-        $res3 = $this->fConnector->getPostsManagement()->updatePost($content.'s3',$res->postId,true)->wait();
+        $res3 = $this->fConnector->getPostsManagement()->updatePost($content.'s3',$res->postId,null)->wait();
         $this->assertTrue($res3->content === $content.'s3' && isset($res3->postId),'Test  update of a post as admin'.$res3->content);
 
     }
@@ -79,11 +79,11 @@ final class PostTest extends TestCase
         $content = uniqid('', false);
 
         //Create a topic
-        $res0 = $this->fConnector->getDiscussionManagement()->postTopic("test post","test content",[1])->wait();
-        $res1 = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,true)->wait();
+        $res0 = $this->fConnector->getDiscussionManagement()->postTopic("test post","test content",[376])->wait();
+        $res1 = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,null)->wait();
 
         //Delete a topic as admin
-        $res2 = $this->fConnector->getPostsManagement()->deletePost($res1->postId,true)->wait();
+        $res2 = $this->fConnector->getPostsManagement()->deletePost($res1->postId,null)->wait();
         $this->assertTrue($res2,'Test deletion of a topic as user');
 
         //Create a new topic
@@ -106,11 +106,11 @@ final class PostTest extends TestCase
         $content = uniqid('', false);
 
         //Create a topic
-        $res0 = $this->fConnector->getDiscussionManagement()->postTopic("test post","test content",[1])->wait();
-        $res1 = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,true)->wait();
-        $res2 = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,true)->wait();
+        $res0 = $this->fConnector->getDiscussionManagement()->postTopic("test post","test content",[376])->wait();
+        $res1 = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,null)->wait();
+        $res2 = $this->fConnector->getPostsManagement()->addPost($res0->id,$content,null)->wait();
 
-        $res3 = $this->fConnector->getPostsManagement()->getPosts($res0->id,true)->wait();
+        $res3 = $this->fConnector->getPostsManagement()->getPosts($res0->id,null)->wait();
         $this->assertCount(3,$res3);
     }
 

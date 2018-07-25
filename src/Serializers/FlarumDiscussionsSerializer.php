@@ -29,7 +29,7 @@ class FlarumDiscussionsSerializer extends AbstractSerializer
         foreach ( $discussion->tags as $tag){
             $tagsAdapted[] = [
                 'type' => 'tags',
-                'id' => "$tag"
+                'id' => (string)$tag
             ];
         }
         return [
@@ -61,13 +61,13 @@ class FlarumDiscussionsSerializer extends AbstractSerializer
         foreach ( $discussion->tags as $tag){
             $tagsAdapted[] = [
                 'type' => 'tags',
-                'id' => "$tag"
+                'id' => (string)$tag
             ];
         }
         return [
             'data' => [
                 'type' => 'discussions',
-                'id' => "$discussion->id",
+                'id' => (string)$discussion->id,
                 'attributes' => [
                     'title' => $discussion->title,
                     'content' => $discussion->content

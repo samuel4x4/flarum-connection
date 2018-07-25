@@ -20,7 +20,8 @@ class FlarumGroupsSerializer extends AbstractSerializer
 {
     /**
      * Get the body for the creation of a group
-     * @return array
+     * @param $group        The object to serialize
+     * @return array        The serialized boddy
      */
     public function getBodyInsert($group): array
     {
@@ -45,7 +46,8 @@ class FlarumGroupsSerializer extends AbstractSerializer
 
     /**
      * Get the body for the update of a group
-     * @return array
+     * @param $group    The object to serialize
+     * @return array    The serialized body
      */
     public function getBodyUpdate($group): array
     {

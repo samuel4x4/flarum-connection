@@ -1,6 +1,6 @@
 <?php
 namespace FlarumConnection\Models;
-use FlarumConnection\Exceptions\InvalidTagException;
+
 use FlarumConnection\Hydrators\AbstractHydrator;
 use FlarumConnection\Hydrators\FlarumTagsHydrator;
 use FlarumConnection\Serializers\AbstractSerializer;
@@ -58,33 +58,39 @@ class FlarumTag extends AbstractModel
      * The id of the tag
      * @var int
      */
-    public $id;
+    public $tagId;
 
     /**
      * Numbers of discussions
      * @var int
      */
-    private $discussions_count;
+    public $discussions_count;
 
     /**
      * Position of the tag
      * @var int
      */
-    private $position;
+    public $position;
 
+    /**
+     * Parent tag
+     * @var FlarumTag
+     */
+    public $parent;
 
 
     /**
      * Initialize the tag
-     * @param string $name      Name of the tag
-     * @param string $slug      Slug of the tag (url) must be unique
-     * @param string $color     Color associated with the
-     * @param string|null $description   Description of the tag
-     * @param bool $isHidden        Is the tag hidden in all discussions
-     * @param bool $isrestricted    Is the tag restricted with specific rights
-     * @param int|null $id               The id of the tag
+     * @param string $name Name of the tag
+     * @param string $slug Slug of the tag (url) must be unique
+     * @param string $color Color associated with the
+     * @param string|null $description Description of the tag
+     * @param bool $isHidden Is the tag hidden in all discussions
+     * @param bool $isRestricted        Indicate if the tag should have specific right
+     * @param int|null $id The id of the tag
      */
-    public function init(string $name, string $slug, string $color, ?string $description, bool $isHidden, bool $isRestricted, ?int $id = null){
+    public function init(string $name, string $slug, string $color, ?string $description, bool $isHidden, bool $isRestricted, ?int $id = null): void
+    {
         $this->name = $name;
         $this->slug = $slug;
         $this->color = $color;
@@ -93,7 +99,7 @@ class FlarumTag extends AbstractModel
         }
         $this->isHidden = $isHidden;
         $this->isRestricted = $isRestricted;
-        $this->id = $id;
+        $this->tagId = $id;
     }
 
     /**
