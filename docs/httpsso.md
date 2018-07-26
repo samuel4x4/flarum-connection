@@ -1,4 +1,4 @@
-#HTTP SSO
+# HTTP SSO
 The HTTP SSO is supported through the main Flarum connector class.
 
 It provide helpers for an application using Symfony/HTTPFoundations requests & responses in order to set & remove cookies and to check if a user is connected
@@ -18,3 +18,8 @@ It will return either :
 The is Connected feature take as parameter a HTTP foundation request & a boolean to indicate wether or not to cross check the cookie.
 If the double check option is true, then it will request the API to see if the cookie had not been invalidated by Flarum.
 It returns a boolean
+
+## Logout
+The logout take a response as reference parameter.
+It will trigger the invalidation of the cookie.
+

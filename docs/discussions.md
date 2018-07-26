@@ -1,11 +1,11 @@
-#Discussion feature
+# Discussion feature
 The discussion feature regroup all the functions related to discussion handling :
 * postTopic(string $title, string $content, array $tags,int $user = null): \Http\Promise\Promise
 * updateTopic(int $id, string $title, string $content, array $tags,?int $user = null): \Http\Promise\Promise
 * getDiscussions(string $tag, int $offset = 0,?int $user = null): \Http\Promise\Promise
 * deleteTopic => To be done
 
-#Post topic
+# Post topic
 The post topic asynchronous function create a new topic on the forum.
 
 It requires :
@@ -18,7 +18,7 @@ It returns :
 * An exception
 * The created topic
 
-#Update topic
+# Update topic
 The update topic asynchronous function create a new topic on the forum.
 
 It requires :

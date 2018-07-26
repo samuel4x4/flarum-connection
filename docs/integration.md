@@ -1,4 +1,4 @@
-#Integration
+# Integration
 ## List of integration hooks
 The API should be used in the portals on the following location :
 * Signup : On signup on the portal, the same action needs to be realized on Flarum 

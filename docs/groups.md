@@ -7,7 +7,7 @@ It includes the following functions :
 * getGroups(?int $user = null): \Http\Promise\Promise
 * deleteGroup(int $id, int $user = null):\Http\Promise\Promise
 
-#Add Group
+# Add Group
 This asynchronous function create a group.
 
 It requires 
@@ -22,7 +22,7 @@ It returns either :
 * The created group
  
  
-#Update Group
+# Update Group
 This asynchronous function update a group.
 
 It requires 
@@ -37,7 +37,7 @@ It returns either :
 * An exception
 * The created group
 
-#Get groups
+# Get groups
 This asynchronous function update a group.
 
 It requires 
@@ -47,7 +47,7 @@ It returns either :
 * An exception
 * The list of visible groups for the user
 
-#Delete group
+# Delete group
 This asynchronous function delete a group
 It requires 
 * The id of the group to delete

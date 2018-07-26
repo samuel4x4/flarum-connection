@@ -60,7 +60,7 @@ It returns either :
 * An exception
 * The list of tags
 
-#Set tag permission
+# Set tag permission
 This asynchronous function set the VIEW, CREATE, RESPOND, MODERATE permission for a tag.
 It associate existing groups with these 4 capabilities. Once set, these group will have the corresponding permission.
 The View permission only allow user to view a forum (CREATE, RESPOND & MODERATE rights include VIEW rights)

@@ -18,7 +18,8 @@ Once all these tasks are achieved the library could be initialized with a Flarum
 * The access token defined in Flarum database
 * The if of the admin user to use for admin request
 * The number of days the session will be kept alive
-```php
+
+```
 $config = new \FlarumConnection\Models\FlarumConnectorConfig (
                 'https://my_forum_adress.mydomain.com', 
                 'mydomain.com',
@@ -26,8 +27,10 @@ $config = new \FlarumConnection\Models\FlarumConnectorConfig (
                 1,
                 3000);
 ```
+
 The library also requires a logger object that needs to be a PSR-2 logger. 
-```php
+
+```
 $Connector = new FlarumConnector($config,$logger);
 ```
 

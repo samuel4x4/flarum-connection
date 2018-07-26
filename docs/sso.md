@@ -1,4 +1,4 @@
-#SSO 
+# SSO 
 The sso library provide the following functions
 * login(string $login,string $password):\GuzzleHttp\Promise\promiseinterface
 * signup(string $login,string $password,string $email):\Http\Promise\Promise
