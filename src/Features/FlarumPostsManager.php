@@ -52,7 +52,7 @@ class FlarumPostsManager extends AbstractFeature
         $post = new FlarumPost();
         $post->init($content);
         $post->discussion = new FlarumDiscussion();
-        $post->discussion->postId=$discussionId;
+        $post->discussion->id=$discussionId;
 
         return $this->insert($this->config->flarumUrl . self::API_POSTS, $post, 201, $user);
 
@@ -109,9 +109,8 @@ class FlarumPostsManager extends AbstractFeature
     private function getUriDiscussion(int $discussionId): string
     {
         $uri = $this->config->flarumUrl . self::API_POSTS . '?include=';
-        $uri = $uri . '&' . urlencode('filter[discussion]') . '=' . urlencode($discussionId);
+        $uri = $uri . '&' . urlencode('filter[discussion]') . '=' . urlencode((string)$discussionId);
         return $uri;
-       // ?filter%5Buser%5D=2&filter%5Btype%5D=comment&page%5Blimit%5D=20&sort=-time
     }
 
 }

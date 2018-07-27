@@ -7,10 +7,8 @@ use FlarumConnection\Exceptions\InvalidDeleteException;
 use FlarumConnection\Exceptions\InvalidObjectException;
 
 use FlarumConnection\Exceptions\InvalidUpdateException;
-use FlarumConnection\Exceptions\InvalidUserException;
 
 
-use \FlarumConnection\Models\FlarumToken;
 use \FlarumConnection\Models\FlarumConnectorConfig;
 use FlarumConnection\Models\AbstractModel;
 
@@ -331,6 +329,6 @@ abstract class AbstractFeature
         } else {
             $requestBuilder->setHeader('Authorization', 'Token ' . $this->config->flarumAPIKey . '; userId=' . $userId);
         }
-        $requestBuilder->setHeader('cookie','flarum_remember='.$this->config->flarumAPIKey);
+
     }
 }

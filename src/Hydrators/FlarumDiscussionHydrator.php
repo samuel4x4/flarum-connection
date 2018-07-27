@@ -16,20 +16,18 @@ class FlarumDiscussionHydrator extends AbstractHydrator
     /**
      * Hydrate a FlarumUser
      * @param Document $document
-     * @return mixed
+     * @return FlarumDiscussion    The discussion object
      */
     public function hydrate(Document $document): FlarumDiscussion
     {
-        echo 'hydrate';
         $hydrated = parent::hydrateObject($document);
-
         return $this->createDiscussion($hydrated);
     }
 
     /**
-     * Hydrate a list of flarum user
-     * @param Document $document
-     * @return iterable
+     * Hydrate a list of flarum discussion
+     * @param Document $document    The json api document
+     * @return iterable     The list of discussion
      */
     public function hydrateCollection(Document $document): iterable
     {
@@ -44,16 +42,13 @@ class FlarumDiscussionHydrator extends AbstractHydrator
 
 
     /**
-     * Create a Flarumuser based on an hydrated stdclass
-     * @param \stdClass $hydrated
-     * @return FlarumDiscussion
+     * Create a FlarumDiscussion based on an hydrated stdclass
+     * @param \stdClass $hydrated   The stdclass hydrated from json api
+     * @return FlarumDiscussion     The FlarumDiscussion object
      */
     public function createDiscussion(\stdClass $hydrated):?FlarumDiscussion{
-        if($hydrated === null){
-            return null;
-        }
         $discussion = new FlarumDiscussion();
-        $discussion->init($this->getRessource($hydrated,'title',''),$this->getRessource($hydrated,'description',''),[],$this->getRessource($hydrated,'id',null));
+        $discussion->init($this->getRessource($hydrated,'title',''),$this->getRessource($hydrated,'content',''),[],$this->getRessource($hydrated,'id',null));
         $discussion->slug = $this->getRessource($hydrated,'slug','');
         $discussion->commentsCount =  $this->getRessource($hydrated,'commentsCount',0);
         $discussion->participantsCount = $this->getRessource($hydrated,'participantsCount',0);

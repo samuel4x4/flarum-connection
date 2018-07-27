@@ -19,7 +19,7 @@ class FlarumTagsSerializer extends AbstractSerializer
 {
     /**
      * Get the body for the creation of a tag
-     * @param $tag      The object to serialize
+     * @param mixed $tag      The object to serialize
      * @return array    The serialized body
      */
     public function getBodyInsert($tag): array
@@ -46,7 +46,7 @@ class FlarumTagsSerializer extends AbstractSerializer
 
     /**
      * Get the body for the update of a tag
-     * @param $tag      The object to serialize
+     * @param mixed $tag      The object to serialize
      * @return array    The serialized body
      */
     public function getBodyUpdate($tag): array

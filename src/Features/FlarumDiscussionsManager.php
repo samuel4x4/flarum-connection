@@ -3,7 +3,7 @@
 namespace FlarumConnection\Features;
 
 
-use FlarumConnection\Exceptions\InvalidUserException;
+
 
 use FlarumConnection\Models\FlarumConnectorConfig;
 use FlarumConnection\Models\FlarumDiscussion;
@@ -41,7 +41,7 @@ class FlarumDiscussionsManager extends AbstractFeature
      * @param string $content Content of the topic
      * @param array $tags Tags associated (array of int)
      * @param int|null $user    The user that will call the API
-     * @return \Http\Promise\Promise    A topic
+     * @return \Http\Promise\Promise    A  promise of  a discussion
      */
     public function postTopic(string $title, string $content, array $tags,int $user = null): \Http\Promise\Promise
     {
@@ -50,6 +50,18 @@ class FlarumDiscussionsManager extends AbstractFeature
 
         return $this->insert($this->config->flarumUrl . self::DISCUSSIONS_PATH ,$disc,201,$user);
     }
+
+    /**
+     * Delete a topic
+     * @param int $id The id of the topic to delete
+     * @param int|null $user        The user to use to delete a topic
+     * @return \Http\Promise\Promise    A promise of a boolean
+     */
+    public function deleteTopic(int $id,?int $user = null): \Http\Promise\Promise
+    {
+        return $this->delete($this->config->flarumUrl . self::DISCUSSIONS_PATH . '/' . $id, new FlarumDiscussion(),204,$user);
+    }
+
 
     /**
      * Update a topic
@@ -69,24 +81,23 @@ class FlarumDiscussionsManager extends AbstractFeature
     }
 
     /**
-     * return a list of discussions
-     * @param string $tag
-     * @param int $offset
-     * @param int|null $user
-     * @return \Http\Promise\Promise
+     * Return a list of discussions associated to a tag
+     * @param string $tag       The tag of the discussion
+     * @param int $offset       The offset (discussion position start)
+     * @param int|null $user    The user that will be used to retrieve the discussion
+     * @return \Http\Promise\Promise    A promise of a list of discussion
      */
     public function getDiscussions(string $tag, int $offset = 0,?int $user = null): \Http\Promise\Promise
     {
-
         return $this->getAll($this->getUri($tag, $offset), new FlarumDiscussion(), $user);
     }
 
 
     /**
-     * Build url for tag
-     * @param null|string $tag
-     * @param int $offset
-     * @return string
+     * Build url for discussion tag search
+     * @param null|string $tag      The tag to select (could be empty
+     * @param int $offset           The offset (discussion position start)
+     * @return string               The uri to call
      */
     private function getUri(?string $tag, int $offset = 0): string
     {

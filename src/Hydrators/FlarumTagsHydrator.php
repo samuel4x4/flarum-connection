@@ -20,8 +20,8 @@ class FlarumTagsHydrator extends AbstractHydrator
 {
     /**
      * Hydrate a Flarum Tag
-     * @param Document $document
-     * @return FlarumTag
+     * @param Document $document        The JSON API source document
+     * @return FlarumTag    The hydrated FlarumTag
      */
     public function hydrate(Document $document): FlarumTag
     {
@@ -30,9 +30,9 @@ class FlarumTagsHydrator extends AbstractHydrator
     }
 
     /**
-     * Hydrate a list of flarum tags
-     * @param Document $document
-     * @return iterable
+     * Hydrate a list of Flarum tags
+     * @param Document $document        The JSON API source document
+     * @return FlarumTag    The hydrated FlarumTag list
      */
     public function hydrateCollection(Document $document): iterable
     {
@@ -47,8 +47,8 @@ class FlarumTagsHydrator extends AbstractHydrator
 
     /**
      * Create a tag based on an hydrated object
-     * @param $hydrated
-     * @return FlarumTag
+     * @param $hydrated     The hydrated class
+     * * @return FlarumTag    The hydrated FlarumTag
      */
     private function createTag(?\stdClass $hydrated): ?FlarumTag
     {

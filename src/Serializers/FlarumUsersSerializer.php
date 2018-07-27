@@ -21,7 +21,7 @@ class FlarumUsersSerializer extends AbstractSerializer
 
     /**
      * Provide the json body for an update
-     * @param object $instance     The instance of the model
+     * @param mixed $instance     The instance of the model
      * @return array        The body as array
      */
     public function getBodyUpdate($instance): array
@@ -74,7 +74,7 @@ class FlarumUsersSerializer extends AbstractSerializer
 
     /**
      * Get body to add to a group
-     * @param $instance     The flarum user instance
+     * @param mixed $instance     The flarum user instance
      * @return array    The body
      */
     public function getBodyAddToGroup($instance): array

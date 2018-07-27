@@ -4,6 +4,7 @@ namespace FlarumConnection;
 
 require '../vendor/autoload.php';
 
+use DateTime;
 use FlarumConnection\Features\FlarumDiscussionsManager;
 use FlarumConnection\Features\FlarumGroupsManager;
 use FlarumConnection\Features\FlarumPostsManager;
@@ -12,7 +13,7 @@ use FlarumConnection\Features\FlarumTagsManager;
 use Psr\Log\LoggerInterface;
 
 use FlarumConnection\Models\FlarumConnectorConfig;
-use FlarumConnection\Models\FlarumToken;
+
 use FlarumConnection\Features\FlarumSSO;
 use FlarumConnection\Features\FlarumUserManagement;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -174,22 +175,26 @@ class FlarumConnector
      *
      * @param string $login
      * @param string $password
-     * @return \GuzzleHttp\Promise\promiseinterface               A promise of an http foundation cookie
+     * @return \GuzzleHttp\Promise\promiseinterface               A promise of an associative array containing a http foundation cookie (with key cookie) & a Flarum token (with key token)
      */
     public function login(string $login, string $password): \GuzzleHttp\Promise\promiseinterface
     {
         $res = $this->flarumSSO->login($login, $password);
         return $res->then(function ($res) {
 
-            $now = new \DateTime();
+            $now = new DateTime();
             $newDate = $now->add(new \DateInterval('P' . $this->config->flarumLifeTime . 'd'));
-            return new Cookie(
+            $cookie = new Cookie(
                 self::FLARUM_COOKIE,
                 $res->token,
                 $newDate,
                 '/',
                 $this->config->rootDomain
             );
+            return [
+                'cookie' => $cookie,
+                'token' =>$res
+            ];
 
 
         }, function (\Exception $e) {

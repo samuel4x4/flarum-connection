@@ -105,7 +105,7 @@ class FlarumSSO extends AbstractFeature{
         $user->email = $email;
         $user->isActivated = true;
 
-        return $this->insert($this->config->flarumUrl.self::CREATE_USER_PATH,$user,201,true);
+        return $this->insert($this->config->flarumUrl.self::CREATE_USER_PATH,$user,201,null);
 
     }
 

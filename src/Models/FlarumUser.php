@@ -111,7 +111,7 @@ class FlarumUser extends AbstractModel
 
     /**
      * Get groups of the user
-     * @var
+     * @var array
      */
     public $groups;
 

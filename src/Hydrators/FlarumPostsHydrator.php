@@ -11,15 +11,15 @@ use WoohooLabs\Yang\JsonApi\Schema\Document;
 
 
 /**
- * Class FlarumDiscussionHydrator
+ * Class that hydrate Flarum posts
  */
 class FlarumPostsHydrator extends AbstractHydrator
 {
 
     /**
      * Hydrate a FlarumPost
-     * @param Document $document    The source document
-     * @return mixed
+     * @param Document $document    The source json API document
+     * @return FlarumPost       The returned JSON document
      */
     public function hydrate(Document $document): FlarumPost
     {
@@ -29,9 +29,9 @@ class FlarumPostsHydrator extends AbstractHydrator
     }
 
     /**
-     * Hydrate a list of flarum post
-     * @param Document $document
-     * @return iterable
+     * Hydrate a list of Flarum posts
+     * @param Document $document    The source json API document
+     * @return iterable     A list of flarum posts
      */
     public function hydrateCollection(Document $document): iterable
     {
@@ -45,8 +45,8 @@ class FlarumPostsHydrator extends AbstractHydrator
 
     /**
      * Create a Post object
-     * @param \stdClass $hydrated
-     * @return FlarumPost|null
+     * @param \stdClass|null $hydrated      Hydrated Flarum Post
+     * @return FlarumPost|null              A flarum post or null
      */
     public function createPost(?\stdClass $hydrated):?FlarumPost{
         if($hydrated === null){

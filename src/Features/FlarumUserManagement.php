@@ -53,7 +53,7 @@ class FlarumUserManagement extends AbstractFeature
      */
     public function getUserByUserName(string $username, ?int $user = null): \Http\Promise\Promise{
         return $this->getAll($this->getUriSearchByUserName($username),new FlarumUser(),$user)->then(
-            function(iterable $array) use ($username){
+            function(array $array) use ($username){
                 if($array===null || \count($array) !== 1){
                     return new RejectedPromise(new InvalidObjectException('User '.$username.'not found'));
                 }
@@ -167,13 +167,7 @@ class FlarumUserManagement extends AbstractFeature
      */
     private function updateEmailOrPassword(string $email, string $username, string $password, bool $updatePassword, int $userId = null, ?int $user = null): \Http\Promise\Promise
     {
-        if ($userId === null) {
-            $token = $this->getToken();
-            if($token === false){
-                throw new InvalidUserException('There is no currently defined user');
-            }
-            $userId = $this->token->userId;
-        }
+
         if ($updatePassword) {
             $flUser = new FlarumUser();
             $flUser->username = $username;

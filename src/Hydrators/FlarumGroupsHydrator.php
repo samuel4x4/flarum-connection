@@ -10,7 +10,7 @@ namespace FlarumConnection\Hydrators;
 
 
 use FlarumConnection\Models\FlarumGroup;
-use FlarumConnection\Models\FlarumTag;
+
 use WoohooLabs\Yang\JsonApi\Schema\Document;
 
 /**
@@ -21,7 +21,7 @@ class FlarumGroupsHydrator extends AbstractHydrator
 {
     /**
      * Hydrate a Flarum Group
-     * @param Document $document
+     * @param Document $document    The json api document
      * @return FlarumGroup The returned group
      */
     public function hydrate(Document $document): FlarumGroup
@@ -31,9 +31,9 @@ class FlarumGroupsHydrator extends AbstractHydrator
     }
 
     /**
-     * Hydrate a list of flarum tags
-     * @param Document $document
-     * @return iterable
+     * Hydrate a list of flarum group
+     * @param Document $document        The json api document
+     * @return iterable A list of groups
      */
     public function hydrateCollection(Document $document): iterable
     {
@@ -47,15 +47,12 @@ class FlarumGroupsHydrator extends AbstractHydrator
 
 
     /**
-     * Create a tag based on an hydrated object
+     * Create a group based on an hydrated object
      * @param   \stdClass $hydrated     Hydrated stdclass
      * @return FlarumGroup  The generated Flarum Group
      */
     public function createGroup(\stdClass $hydrated): ?FlarumGroup
     {
-        if($hydrated === null){
-            return null;
-        }
         $group = new FlarumGroup();
         $group->init(
             $this->getRessource($hydrated, 'nameSingular', ''),

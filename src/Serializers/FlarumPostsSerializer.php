@@ -19,7 +19,7 @@ class FlarumPostsSerializer extends AbstractSerializer
 {
     /**
      * Get the body for the creation of a post
-     * @param $post     The object to serialize
+     * @param mixed $post     The object to serialize
      * @return array    The serialized body
      */
     public function getBodyInsert($post): array
@@ -36,7 +36,7 @@ class FlarumPostsSerializer extends AbstractSerializer
                             'data' =>
                             [
                                 'type' => 'discussion',
-                                'id' => $post->discussion->postId
+                                'id' => $post->discussion->id
                             ]
                         ]
 

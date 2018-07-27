@@ -180,9 +180,12 @@ class FlarumTagsManager extends AbstractFeature
 
         $tagSerializer = new FlarumTagsSerializer();
         $body = json_encode($tagSerializer->getBodyPermission($tagId, $groups, $permission));
+        if($user === null){
+            $user = $this->config->flarumDefaultUser;
+        }
         $headers = [
             'Content-Type:' => 'application/json',
-            'Authorization' => 'Token ' . $this->config->flarumAPIKey . '; userId=1',
+            'Authorization' => 'Token ' . $this->config->flarumAPIKey . '; userId='.$user,
             'Content-Length' => strlen($body)
         ];
         $request = new Request('POST', $this->config->flarumUrl . self::PERMISSION_PATH, $headers, $body);
@@ -223,7 +226,7 @@ class FlarumTagsManager extends AbstractFeature
      * @param int|null $user
      * @return PromiseInterface
      */
-    public function setTagOrder(FlarumTagOrder $order,?int $user = null): \GuzzleHttp\Promise\PromiseInterface
+    public function setTagOrder(FlarumTagOrder $order,?int $user = null): PromiseInterface
     {
         $body_array = $order->toOrderArray();
         $body = json_encode($body_array);

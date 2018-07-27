@@ -3,7 +3,7 @@ namespace FlarumConnection\Hydrators;
 
 
 use WoohooLabs\Yang\JsonApi\Hydrator\ClassHydrator;
-use WoohooLabs\Yang\JsonApi\Schema\Document;
+
 
 /**
  * Root class for Hydrators

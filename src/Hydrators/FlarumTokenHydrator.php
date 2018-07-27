@@ -20,8 +20,8 @@ class FlarumTokenHydrator extends AbstractHydrator
      */
     public function hydrate(Document $document): FlarumDiscussion
     {
-        $hydrated = parent::hydrateObject($document);
-        return null;
+        return parent::hydrateObject($document);
+
     }
 
     /**

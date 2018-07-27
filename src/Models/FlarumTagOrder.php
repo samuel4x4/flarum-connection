@@ -174,7 +174,7 @@ class FlarumTagOrderItem
 
     /**
      * Indicate if the item is a child
-     * @var
+     * @var bool
      */
     private $isParent;
 
@@ -227,7 +227,7 @@ class FlarumTagOrderItem
     /**
      * Return a child by id
      * @param int $childId The id of the child
-     * @return FlarumTagOrderItem   The item associated
+     * @return FlarumTagOrderItem|null   The item associated
      */
     public function getChild(int $childId): FlarumTagOrderItem
     {
