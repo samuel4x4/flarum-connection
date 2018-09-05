@@ -31,7 +31,6 @@ class FlarumDiscussionHydrator extends AbstractHydrator
      */
     public function hydrateCollection(Document $document): iterable
     {
-        echo 'hydratec';
         $list = parent::hydrateCollection($document);
         $ret = [];
         foreach($list as $element){
