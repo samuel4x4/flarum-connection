@@ -2,8 +2,6 @@
 
 namespace FlarumConnection;
 
-require '../vendor/autoload.php';
-
 use DateTime;
 use FlarumConnection\Features\FlarumDiscussionsManager;
 use FlarumConnection\Features\FlarumGroupsManager;
