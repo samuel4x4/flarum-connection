@@ -9,6 +9,7 @@ use FlarumConnection\Models\FlarumConnectorConfig;
 use FlarumConnection\Models\FlarumDiscussion;
 
 
+use FlarumConnection\Models\FlarumTag;
 use \Psr\Log\LoggerInterface;
 
 
@@ -32,6 +33,40 @@ class FlarumDiscussionsManager extends AbstractFeature
     public function __construct(FlarumConnectorConfig $config, LoggerInterface $logger)
     {
         $this->init($config, $logger);
+    }
+
+    /**
+     * @param string $title
+     * @param string $tag
+     * @param int|null $user
+     * @return FlarumDiscussion|null
+     * @throws \Exception
+     */
+    public function getTopicByTitleAndTag(string $title, string $tag, ?int $user = null): ?FlarumDiscussion
+    {
+        /** @var FlarumDiscussion[] $tags */
+        $topics = $this->getDiscussions($tag, 0, $user)->wait();
+
+        foreach ($topics as $topic) {
+            if ($topic->title == $title) {
+                return $topic;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $title
+     * @param FlarumTag $tag
+     * @param string $content
+     * @param int|null $user
+     * @return FlarumDiscussion
+     * @throws \Exception
+     */
+    public function getOrAddTopicByTitleAndTag(string $title, FlarumTag $tag, string $content, ?int $user = null): FlarumDiscussion
+    {
+        return $this->getTopicByTitleAndTag($title, $tag->name, $user) ?? $this->postTopic($title, $content, [$tag->tagId], $user)->wait();
     }
 
     /**
