@@ -66,9 +66,32 @@ class FlarumTagsManager extends AbstractFeature
      * @return FlarumTag|mixed|null
      * @throws \Exception
      */
-    public function getOrAddTagByName(string $name, string $slug, string $description, string $color = '#888', bool $isHidden = false, bool $isRestricted = false, ?int $user = null)
+    public function getOrAddTagByName(string $name, string $slug, string $description, string $color = '#888', bool $isHidden = false, bool $isRestricted = false, ?int $user = null): FlarumTag
     {
         return $this->getTagByName($name) ?? $this->addTag($name, $slug, $description, $color, $isHidden, $isRestricted, $user)->wait();
+    }
+
+    /**
+     * @param string $name
+     * @param string $slug
+     * @param string $description
+     * @param string $color
+     * @param bool $isHidden
+     * @param bool $isRestricted
+     * @param int|null $user
+     * @return FlarumTag|mixed|null
+     * @throws \Exception
+     */
+    public function getOrAddParentTagByName(string $name, string $slug, string $description, string $color = '#888', bool $isHidden = false, bool $isRestricted = false, ?int $user = null): FlarumTag
+    {
+        $tag = $this->getOrAddTagByName($name, $slug, $description, $color, $isHidden, $isRestricted, $user);
+
+        /** @var FlarumTagOrder $tagOrder */
+        $tagOrder = $this->getTagOrder($user)->wait();
+        $tagOrder->addParentToEnd($tag->tagId);
+        $this->setTagOrder($tagOrder, $user)->wait();
+
+        return $tag;
     }
 
     /**
