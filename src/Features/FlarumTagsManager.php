@@ -55,6 +55,41 @@ class FlarumTagsManager extends AbstractFeature
         $this->init($config, $logger);
     }
 
+    /**
+     * @param string $name
+     * @param string $slug
+     * @param string $description
+     * @param string $color
+     * @param bool $isHidden
+     * @param bool $isRestricted
+     * @param int|null $user
+     * @return FlarumTag|mixed|null
+     * @throws \Exception
+     */
+    public function getOrAddTagByName(string $name, string $slug, string $description, string $color = '#888', bool $isHidden = false, bool $isRestricted = false, ?int $user = null)
+    {
+        return $this->getTagByName($name) ?? $this->addTag($name, $slug, $description, $color, $isHidden, $isRestricted, $user)->wait();
+    }
+
+    /**
+     * @param string $name
+     * @param int|null $user
+     * @return FlarumTag|null
+     * @throws \Exception
+     */
+    public function getTagByName(string $name, ?int $user = null): ?FlarumTag
+    {
+        /** @var FlarumTag[] $tags */
+        $tags = $this->getTags($user)->wait();
+
+        foreach ($tags as $tag) {
+            if ($tag->name == $name) {
+                return $tag;
+            }
+        }
+
+        return null;
+    }
 
     /**
      * Add a new tag
