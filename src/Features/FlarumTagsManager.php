@@ -115,6 +115,26 @@ class FlarumTagsManager extends AbstractFeature
     }
 
     /**
+     * @param int $id
+     * @param int|null $user
+     * @return FlarumTag|null
+     * @throws \Exception
+     */
+    public function getTagById(int $id, ?int $user = null): ?FlarumTag
+    {
+        /** @var FlarumTag[] $tags */
+        $tags = $this->getTags($user)->wait();
+
+        foreach ($tags as $tag) {
+            if ($tag->tagId == $id) {
+                return $tag;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Add a new tag
      * @param string $name Name of the tag
      * @param string $slug Name of the slug (must be unique)
