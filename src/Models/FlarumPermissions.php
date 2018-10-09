@@ -98,13 +98,13 @@ class FlarumPermissions
     public function getPermissionSetup(): array
     {
         $output = [];
-        $readGroups = array_merge($this->allowedCreate,$this->allowedRespond,$this->allowedModerate,$this->allowedRead);
+        $readGroups = array_unique(array_merge($this->allowedCreate,$this->allowedRespond,$this->allowedModerate,$this->allowedRead));
         $output['VIEW'] =$this->setOutputForCategory(self::READ_RIGHTS,$readGroups);
 
-        $respondGroups = array_merge($this->allowedCreate,$this->allowedRespond,$this->allowedModerate);
+        $respondGroups = array_unique(array_merge($this->allowedCreate,$this->allowedRespond,$this->allowedModerate));
         $output['RESPOND'] = $this->setOutputForCategory(self::RESPOND_RIGHTS,$respondGroups);
 
-        $createGroups = array_merge($this->allowedCreate,$this->allowedModerate);
+        $createGroups = array_unique(array_merge($this->allowedCreate,$this->allowedModerate));
         $output['CREATE'] = $this->setOutputForCategory(self::CREATE_RIGHTS,$createGroups);
 
         $moderateGroups = $this->allowedModerate;
