@@ -53,6 +53,8 @@ class FlarumDiscussionHydrator extends AbstractHydrator
         $discussion->participantsCount = $this->getRessource($hydrated,'participantsCount',0);
         $discussion->startTime = $this->getRessource($hydrated,'startTime',0);
         $discussion->lastTime = $this->getRessource($hydrated,'lastTime',0);
+        $discussion->readTime = $this->getRessource($hydrated,'readTime',0);
+        $discussion->readNumber = $this->getRessource($hydrated,'readNumber',1);
         $discussion->lastPostNumber = $this->getRessource($hydrated,'lastPostNumber',1);
 
         $userHydrator = new FlarumUsersHydrator();
