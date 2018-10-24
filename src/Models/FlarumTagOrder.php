@@ -229,7 +229,7 @@ class FlarumTagOrderItem
      * @param int $childId The id of the child
      * @return FlarumTagOrderItem|null   The item associated
      */
-    public function getChild(int $childId): FlarumTagOrderItem
+    public function getChild(int $childId): ?FlarumTagOrderItem
     {
         $pos = $this->getPosition($childId);
         if ($pos !== -1) {
