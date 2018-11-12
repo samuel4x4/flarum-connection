@@ -101,6 +101,17 @@ class FlarumPost extends AbstractModel
      */
     public $user;
 
+    /**
+     * Users who liked the post
+     * @var FlarumUser[]
+     */
+    public $likes;
+
+    /**
+     * Number of likes
+     * @var int
+     */
+    public $likesCount = 0;
 
     /**
      * The id of the tag

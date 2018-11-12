@@ -50,7 +50,7 @@ class FlarumTagsHydrator extends AbstractHydrator
      * @param $hydrated     The hydrated class
      * * @return FlarumTag    The hydrated FlarumTag
      */
-    private function createTag(?\stdClass $hydrated): ?FlarumTag
+    public function createTag(?\stdClass $hydrated): ?FlarumTag
     {
         if($hydrated === null){
             return null;

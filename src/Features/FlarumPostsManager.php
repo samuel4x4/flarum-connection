@@ -87,6 +87,16 @@ class FlarumPostsManager extends AbstractFeature
     }
 
     /**
+     * @param int $user
+     * @param int|null $asUser
+     * @return Promise
+     */
+    public function getPostsOfUser(int $user, ?int $asUser = null): Promise
+    {
+        return $this->getAll($this->getUri(['user' => $user, 'type' => 'comment']), new FlarumPost(), $asUser);
+    }
+
+    /**
      * Delete a post
      * @param int $postId The id of the post to delete
      * @param int|null $user
@@ -102,15 +112,32 @@ class FlarumPostsManager extends AbstractFeature
     }
 
     /**
-     * Return the uri for discussions
-     * @param int $discussionId The id of the discussion
+     * Return the uri for posts
+     * @param array $filters Filters for posts
      * @return string       The uri to be called
      */
-    private function getUriDiscussion(int $discussionId): string
+    private function getUri(array $filters = []): string
     {
         $uri = $this->config->flarumUrl . self::API_POSTS . '?include=';
-        $uri = $uri . '&' . urlencode('filter[discussion]') . '=' . urlencode((string)$discussionId);
+
+        foreach ($filters as $key => $value) {
+            $uri .= '&' . urlencode("filter[$key]") . '=' . urlencode((string)$value);
+        }
+
         return $uri;
+    }
+
+    /**
+     * Return the uri for discussions
+     * @param int $discussionId The id of the discussion
+     * @param array $filters Filters for posts
+     * @return string       The uri to be called
+     */
+    private function getUriDiscussion(int $discussionId, array $filters = []): string
+    {
+        $filters['discussion'] = $discussionId;
+
+        return $this->getUri($filters);
     }
 
 }

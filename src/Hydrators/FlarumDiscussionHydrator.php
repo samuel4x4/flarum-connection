@@ -57,6 +57,14 @@ class FlarumDiscussionHydrator extends AbstractHydrator
         $discussion->readNumber = $this->getRessource($hydrated,'readNumber',1);
         $discussion->lastPostNumber = $this->getRessource($hydrated,'lastPostNumber',1);
 
+        if (isset($hydrated->tags)) {
+            $tags = $this->getRessource($hydrated,'tags','');
+            $tagHydrator = new FlarumTagsHydrator();
+            foreach ($tags as $tag) {
+                $discussion->tags[] = $tagHydrator->createTag($tag);
+            }
+        }
+
         $userHydrator = new FlarumUsersHydrator();
         $discussion->startUser = $userHydrator->createUser( $this->getRessource($hydrated,'startUser',null));
         $discussion->lastUser = $userHydrator->createUser( $this->getRessource($hydrated,'lastUser',null));

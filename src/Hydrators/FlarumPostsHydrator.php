@@ -68,6 +68,14 @@ class FlarumPostsHydrator extends AbstractHydrator
         $userHydrator = new FlarumUsersHydrator();
         $post->user = $userHydrator->createUser($this->getRessource($hydrated,'user',null));
 
+        if (property_exists($hydrated, 'likes')) {
+            $likes = $this->getRessource($hydrated,'likes','');
+            $post->likesCount = count($likes);
+            foreach ($likes as $user) {
+                $post->likes[] = $userHydrator->createUser($user);
+            }
+        }
+
         $discussionHydrator = new FlarumDiscussionHydrator();
         $post->discussion = $discussionHydrator->createDiscussion($this->getRessource($hydrated,'discussion',null));
         return $post;
