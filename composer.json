@@ -1,5 +1,5 @@
 {
-    "name": "orange/flarum-connection",
+    "name": "orangeopensource/flarum-connection",
     "description": "Connection library for Flarum",
     "type": "library",
     "license": "Proprietary",
