@@ -50,12 +50,12 @@ In order to use unit testing through phpunit, a configuration (in tests/Config d
 ```php
 return [
     'testUser' => 'admin',
-    'testPassword' => 'sunlight',
+    'testPassword' => 'password',
     'testTagId' => 376,
     'testTagName' => 'TAG15b586f22a4472',
     'testonSSL' => false,
-    'flarumUrl' => 'http://flarum.laborange.net',
-    'flarumRootDomain' => 'laborange.net',
+    'flarumUrl' => 'http://flarum.lab.net',
+    'flarumRootDomain' => 'lab.net',
     'flarumApiKey' =>'NotSecureToken',
     'flarumDefaultUser' => 1,
     'flarumLifeTime' =>3000
