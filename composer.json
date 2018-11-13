@@ -2,7 +2,7 @@
     "name": "orangeopensource/flarum-connection",
     "description": "Connection library for Flarum",
     "type": "library",
-    "license": "Proprietary",
+    "license": "proprietary",
     "authors": [
         {
             "name": "Rémy Darcel",
