@@ -146,6 +146,7 @@ abstract class AbstractFeature
                         return $hydrator->hydrate($resp->document());
                     }
                     $this->logger->error('Invalid response on ' . $objectName . ' ' . $method . ' ' . $res->getStatusCode() . ' returned\n');
+                    $res->getBody()->rewind();
                     $this->logger->debug('Invalid response ' . $res->getBody()->getContents());
                     return new RejectedPromise(new InvalidObjectException('Error during ' . $objectName . ' ' . $method . ' '));
 
