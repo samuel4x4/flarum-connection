@@ -66,8 +66,8 @@ class FlarumDiscussionHydrator extends AbstractHydrator
         }
 
         $userHydrator = new FlarumUsersHydrator();
-        $discussion->startUser = $userHydrator->createUser( $this->getRessource($hydrated,'startUser',null));
-        $discussion->lastUser = $userHydrator->createUser( $this->getRessource($hydrated,'lastUser',null));
+        $discussion->user = $userHydrator->createUser( $this->getRessource($hydrated,'user',null));
+        $discussion->lastPostedUser = $userHydrator->createUser( $this->getRessource($hydrated,'lastPostedUser',null));
         return $discussion;
     }
 }

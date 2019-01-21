@@ -67,7 +67,7 @@ class FlarumTagsHydrator extends AbstractHydrator
         );
         $tag->parent = $this->createTag($this->getRessource($hydrated, 'parent', null));
         $tag->position =$this->getRessource($hydrated, 'position', 0);
-        $tag->discussions_count = $this->getRessource($hydrated, 'discussion_count', 0);
+        $tag->discussions_count = $this->getRessource($hydrated, 'discussionCount', 0);
         return $tag;
 
 

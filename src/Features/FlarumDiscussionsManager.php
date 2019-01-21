@@ -127,7 +127,6 @@ class FlarumDiscussionsManager extends AbstractFeature
         return $this->getAll($this->getUri($tag, $offset), new FlarumDiscussion(), $user);
     }
 
-
     /**
      * Build url for discussion tag search
      * @param null|string $tag      The tag to select (could be empty
@@ -136,11 +135,11 @@ class FlarumDiscussionsManager extends AbstractFeature
      */
     private function getUri(?string $tag, int $offset = 0): string
     {
-        $uri = $this->config->flarumUrl . self::DISCUSSIONS_PATH . '?include=' . urlencode('startUser,lastUser,startPost,tags');
+        $uri = $this->config->flarumUrl . self::DISCUSSIONS_PATH . '?include=' . urlencode('user,lastPostedUser,firstPost,tags');
         if ($tag === null) {
             $uri .= '&tags&&';
         } else {
-            $uri = $uri . '&' . urlencode('filter[q]') . '=' . urlencode('tag' . ':' . $tag);
+            $uri = $uri . '&' . urlencode('filter[q]') . '=' . urlencode("tag:{$tag}");
         }
         if ($offset !== 0) {
             $uri = $uri . '&' . urlencode('page[offset]=') . $offset;
