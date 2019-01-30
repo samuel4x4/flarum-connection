@@ -8,11 +8,9 @@
 
 namespace FlarumConnection\Features;
 
-
 use FlarumConnection\Models\FlarumConnectorConfig;
 use FlarumConnection\Models\FlarumGroup;
 use FlarumConnection\Models\FlarumTag;
-
 
 use Psr\Log\LoggerInterface;
 
@@ -26,7 +24,7 @@ class FlarumGroupsManager extends AbstractFeature
     /**
      * Path for Discussions
      */
-     public const GROUP_PATH = '/api/groups';
+    public const GROUP_PATH = '/api/groups';
 
     /**
      * FlarumGroupsManager constructor.
@@ -36,6 +34,17 @@ class FlarumGroupsManager extends AbstractFeature
     public function __construct(FlarumConnectorConfig $config, LoggerInterface $logger)
     {
         $this->init($config, $logger);
+    }
+
+    /**
+     * Get the  user
+     * @param int|null $groupId The id of the group
+     * @param int|null $user
+     * @return \Http\Promise\Promise
+     */
+    public function getGroup(int $groupId = null, ?int $user = null): \Http\Promise\Promise
+    {
+        return $this->getOne($this->config->flarumUrl . self::GROUP_PATH . '/' . $groupId, new FlarumGroup(), $user);
     }
 
 
@@ -66,7 +75,7 @@ class FlarumGroupsManager extends AbstractFeature
      * @param string $color Color of the group
      * @param string $icon Fontawesome icon name
      * @param int $id The id of the tag
-     * @param int|null $user    The id of the user that will call the webservice
+     * @param int|null $user The id of the user that will call the webservice
      * @return \Http\Promise\Promise        A promise of a tag or of an exception
      */
     public function updateGroup(string $nameSingular, string $namePlural, string $color, string $icon, int $id, int $user = null): \Http\Promise\Promise
@@ -96,12 +105,13 @@ class FlarumGroupsManager extends AbstractFeature
      * @param int|null $user
      * @return \Http\Promise\Promise
      */
-    public function deleteGroup(int $id, int $user = null):\Http\Promise\Promise{
+    public function deleteGroup(int $id, int $user = null): \Http\Promise\Promise
+    {
         return $this->delete(
-            $this->config->flarumUrl . self::GROUP_PATH.'/'.$id,
-        new FlarumTag(),
-        204,
-        $user);
+            $this->config->flarumUrl . self::GROUP_PATH . '/' . $id,
+            new FlarumTag(),
+            204,
+            $user);
 
     }
 
