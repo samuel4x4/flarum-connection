@@ -99,13 +99,13 @@ class FlarumDiscussion extends AbstractModel
      * First user to post
      * @var FlarumUser
      */
-    public $startUser;
+    public $user;
 
     /**
      * Last user to post
      * @var FlarumUser
      */
-    public $lastUser;
+    public $lastPostedUser;
 
 
     /**
