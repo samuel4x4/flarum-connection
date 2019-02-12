@@ -51,19 +51,19 @@ class FlarumDiscussion extends AbstractModel
      * Start date of the discussion
      * @var int
      */
-    public $startTime;
+    public $createdAt;
 
     /**
      * Last post date
      * @var int
      */
-    public $lastTime;
+    public $lastPostedAt;
 
     /**
      * Last read date
      * @var int
      */
-    public $readTime;
+    public $lastReadAt;
 
     /**
      * Number of participants
@@ -93,7 +93,7 @@ class FlarumDiscussion extends AbstractModel
      * Number of the last read post
      * @var int
      */
-    public $readNumber;
+    public $lastReadPostNumber;
 
     /**
      * First user to post

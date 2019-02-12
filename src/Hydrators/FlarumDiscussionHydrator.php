@@ -51,10 +51,10 @@ class FlarumDiscussionHydrator extends AbstractHydrator
         $discussion->slug = $this->getRessource($hydrated,'slug','');
         $discussion->commentsCount =  $this->getRessource($hydrated,'commentsCount',0);
         $discussion->participantsCount = $this->getRessource($hydrated,'participantsCount',0);
-        $discussion->startTime = $this->getRessource($hydrated,'startTime',0);
-        $discussion->lastTime = $this->getRessource($hydrated,'lastTime',0);
-        $discussion->readTime = $this->getRessource($hydrated,'readTime',0);
-        $discussion->readNumber = $this->getRessource($hydrated,'readNumber',1);
+        $discussion->createdAt = $this->getRessource($hydrated,'createdAt') ? strtotime($this->getRessource($hydrated,'createdAt')) : null;
+        $discussion->lastPostedAt = $this->getRessource($hydrated,'lastPostedAt') ? strtotime($this->getRessource($hydrated,'lastPostedAt')) : null;
+        $discussion->lastReadAt = $this->getRessource($hydrated,'lastReadAt') ? strtotime($this->getRessource($hydrated,'lastReadAt')) : null;
+        $discussion->lastReadPostNumber = $this->getRessource($hydrated,'lastReadPostNumber',1);
         $discussion->lastPostNumber = $this->getRessource($hydrated,'lastPostNumber',1);
 
         if (isset($hydrated->tags)) {
